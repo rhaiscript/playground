@@ -22,6 +22,9 @@ lto = true
 #default = ["wee_alloc"]
 
 [dependencies]
+rhai = { version = "0.15.1", features = [ "only_i64", "no_module", "no_optimize", "unchecked" ] }
+js-sys = "0.3"
+
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
 wasm-bindgen = "0.2.45"

@@ -1,6 +1,26 @@
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
+mod scripting;
+
+#[wasm_bindgen]
+pub fn run_script(
+    script: String,
+    print_callback: js_sys::Function,
+    debug_callback: js_sys::Function,
+) -> Result<String, JsValue> {
+    console_error_panic_hook::set_once();
+
+    Ok(scripting::run_script(
+        &script,
+        move |s| {
+            let _ = print_callback.call1(&JsValue::null(), &JsValue::from_str(s));
+        },
+        move |s| {
+            let _ = debug_callback.call1(&JsValue::null(), &JsValue::from_str(s));
+        },
+    )?)
+}
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
 // allocator.
@@ -10,7 +30,6 @@ use web_sys::console;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
@@ -18,7 +37,6 @@ pub fn main_js() -> Result<(), JsValue> {
     // It's disabled in release mode so it doesn't bloat up the file size.
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
-
 
     // Your code goes here!
     console::log_1(&JsValue::from_str("Hello world!"));
