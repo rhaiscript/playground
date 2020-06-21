@@ -3,12 +3,14 @@ import("../pkg/index.js").catch(console.error).then(
         window.run_script = module.run_script;
     }
 );
-import * as monaco from 'monaco-editor';
+import CodeMirror from "codemirror";
+import "codemirror/lib/codemirror.css";
+import "codemirror/mode/rust/rust.js";
 
-let editor = monaco.editor.create(document.getElementById('editorContainer'), {
+let editor = CodeMirror(document.getElementById('editorContainer'), {
     value: 'fn run(a) {\n    let b = a + 1;\n    print("Hello world! a = " + a);\n}\nrun(10);\n',
-    language: 'rust',
-    automaticLayout: true,
+    mode: "rust",
+    lineNumbers: true,
 });
 
 function btnClick() {

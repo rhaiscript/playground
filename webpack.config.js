@@ -1,7 +1,6 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const dist = path.resolve(__dirname, "dist");
 
@@ -34,7 +33,5 @@ module.exports = {
     new WasmPackPlugin({
       crateDirectory: __dirname,
     }),
-
-    new MonacoWebpackPlugin(),
   ]
 };
