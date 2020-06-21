@@ -15,7 +15,9 @@ crate-type = ["cdylib"]
 [profile.release]
 # This makes the compiled code faster and smaller, but it makes compiling slower,
 # so it's only enabled in release mode.
-lto = true
+# lto = true
+codegen-units = 1
+opt-level = 's'
 
 [features]
 # If you uncomment this line, it will enable `wee_alloc`:
