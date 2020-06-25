@@ -2,7 +2,6 @@ const wasmImport = import("../pkg/index.js").catch(console.error);
 
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
-import "codemirror/mode/rust/rust.js";
 
 const initialCode = `\
 fn run(a) {
@@ -13,9 +12,13 @@ run(10);
 `;
 
 wasmImport.then(module => {
+    CodeMirror.defineMode("rhai", (cfg, mode) => {
+        return new module.RhaiMode();
+    });
+
     const editor = CodeMirror(document.getElementById('editorContainer'), {
         value: initialCode,
-        mode: "rust",
+        mode: "rhai",
         lineNumbers: true,
         indentUnit: 4,
         extraKeys: {

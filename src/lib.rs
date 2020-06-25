@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
+mod cm_rhai_mode;
+mod codemirror;
 mod scripting;
 
 #[wasm_bindgen]

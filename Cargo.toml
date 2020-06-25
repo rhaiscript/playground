@@ -24,7 +24,7 @@ opt-level = 's'
 #default = ["wee_alloc"]
 
 [dependencies]
-rhai = { version = "0.15.1", features = [ "only_i64", "no_module", "no_optimize", "unchecked" ] }
+rhai = { version = "^0.15.2", features = [ "only_i64", "no_optimize", "internals" ] }
 js-sys = "0.3"
 
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
@@ -55,3 +55,7 @@ wasm-bindgen-test = "0.2.45"
 futures = "0.1.27"
 js-sys = "0.3.22"
 wasm-bindgen-futures = "0.3.22"
+
+[patch.crates-io]
+# commit fe640e0e13b9c641d78caab021a54abc56a07e75
+rhai = { path = "D:\\dev\\experiments\\rhai" }
