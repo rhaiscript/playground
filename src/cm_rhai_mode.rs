@@ -3,8 +3,6 @@ use js_sys::RegExp;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
-mod token;
-
 #[wasm_bindgen]
 pub struct RhaiMode {
     indent_unit: u32,
@@ -13,7 +11,7 @@ pub struct RhaiMode {
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct State {
-    token_state: token::State,
+    token_state: rhai::TokenizeState,
     unclosed_bracket_count: i32,
     line_indent: u32,
     is_defining_identifier: bool,
@@ -34,7 +32,10 @@ impl RhaiMode {
     #[wasm_bindgen(js_name = startState)]
     pub fn start_state(&self) -> State {
         State {
-            token_state: token::State::new(),
+            token_state: rhai::TokenizeState {
+                include_comments: true,
+                ..Default::default()
+            },
             unclosed_bracket_count: 0,
             line_indent: 0,
             is_defining_identifier: false,
@@ -76,119 +77,136 @@ impl RhaiMode {
     }
 }
 
+struct StreamAdapter {
+    stream: codemirror::StringStream,
+}
+
+impl rhai::InputStream for StreamAdapter {
+    fn get_next(&mut self) -> Option<char> {
+        self.stream.next()
+    }
+
+    fn peek_next(&mut self) -> Option<char> {
+        self.stream.peek()
+    }
+}
+
 fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<String>, JsValue> {
     if stream.sol() {
         state.line_indent = stream.indentation();
         state.unclosed_bracket_count = 0;
     }
 
-    let (next_token, _) = token::next_token(&mut state.token_state, &stream)
-        .ok_or_else(|| "Failed to get next token")?;
+    let (next_token, _) = rhai::get_next_token(
+        &mut StreamAdapter { stream },
+        &mut state.token_state,
+        &mut rhai::Position::default(),
+    )
+    .ok_or_else(|| "Failed to get next token")?;
     match &next_token {
-        token::Token::LeftBrace
-        | token::Token::LeftBracket
-        | token::Token::LeftParen
-        | token::Token::MapStart => {
+        rhai::Token::LeftBrace
+        | rhai::Token::LeftBracket
+        | rhai::Token::LeftParen
+        | rhai::Token::MapStart => {
             if state.unclosed_bracket_count < 0 {
                 state.unclosed_bracket_count = 0;
             }
             state.unclosed_bracket_count += 1;
         }
-        token::Token::RightBrace | token::Token::RightBracket | token::Token::RightParen => {
+        rhai::Token::RightBrace | rhai::Token::RightBracket | rhai::Token::RightParen => {
             state.unclosed_bracket_count -= 1;
         }
         _ => {}
     };
     let res = match &next_token {
-        token::Token::IntegerConstant() => "number",
-        token::Token::FloatConstant() => "number",
-        token::Token::Identifier() => {
+        rhai::Token::IntegerConstant(_) => "number",
+        rhai::Token::FloatConstant(_) => "number",
+        rhai::Token::Identifier(_) => {
             if state.is_defining_identifier {
                 "def"
             } else {
                 "variable"
             }
         }
-        token::Token::CharConstant() => "string-2",
-        token::Token::StringConst() => "string",
-        token::Token::LeftBrace => "bracket",
-        token::Token::RightBrace => "bracket",
-        token::Token::LeftParen => "bracket",
-        token::Token::RightParen => "bracket",
-        token::Token::LeftBracket => "bracket",
-        token::Token::RightBracket => "bracket",
-        token::Token::Plus => "operator",
-        token::Token::UnaryPlus => "operator",
-        token::Token::Minus => "operator",
-        token::Token::UnaryMinus => "operator",
-        token::Token::Multiply => "operator",
-        token::Token::Divide => "operator",
-        token::Token::Modulo => "operator",
-        token::Token::PowerOf => "operator",
-        token::Token::LeftShift => "operator",
-        token::Token::RightShift => "operator",
-        token::Token::SemiColon => "operator",
-        token::Token::Colon => "operator",
-        token::Token::DoubleColon => "operator",
-        token::Token::Comma => "operator",
-        token::Token::Period => "operator",
-        token::Token::MapStart => "bracket",
-        token::Token::Equals => "operator",
-        token::Token::True => "builtin",
-        token::Token::False => "builtin",
-        token::Token::Let => "keyword",
-        token::Token::Const => "keyword",
-        token::Token::If => "keyword",
-        token::Token::Else => "keyword",
-        token::Token::While => "keyword",
-        token::Token::Loop => "keyword",
-        token::Token::For => "keyword",
-        token::Token::In => "keyword",
-        token::Token::LessThan => "operator",
-        token::Token::GreaterThan => "operator",
-        token::Token::LessThanEqualsTo => "operator",
-        token::Token::GreaterThanEqualsTo => "operator",
-        token::Token::EqualsTo => "operator",
-        token::Token::NotEqualsTo => "operator",
-        token::Token::Bang => "operator",
-        token::Token::Pipe => "operator",
-        token::Token::Or => "operator",
-        token::Token::XOr => "operator",
-        token::Token::Ampersand => "operator",
-        token::Token::And => "operator",
-        token::Token::Fn => "keyword",
-        token::Token::Continue => "keyword",
-        token::Token::Break => "keyword",
-        token::Token::Return => "keyword",
-        token::Token::Throw => "keyword",
-        token::Token::PlusAssign => "operator",
-        token::Token::MinusAssign => "operator",
-        token::Token::MultiplyAssign => "operator",
-        token::Token::DivideAssign => "operator",
-        token::Token::LeftShiftAssign => "operator",
-        token::Token::RightShiftAssign => "operator",
-        token::Token::AndAssign => "operator",
-        token::Token::OrAssign => "operator",
-        token::Token::XOrAssign => "operator",
-        token::Token::ModuloAssign => "operator",
-        token::Token::PowerOfAssign => "operator",
-        token::Token::Private => "keyword",
-        token::Token::Import => "keyword",
-        token::Token::Export => "keyword",
-        token::Token::As => "keyword",
-        token::Token::LineComment => "comment",
-        token::Token::BlockComment => "comment",
-        token::Token::LexError(e) => {
+        rhai::Token::CharConstant(_) => "string-2",
+        rhai::Token::StringConst(_) => "string",
+        rhai::Token::LeftBrace => "bracket",
+        rhai::Token::RightBrace => "bracket",
+        rhai::Token::LeftParen => "bracket",
+        rhai::Token::RightParen => "bracket",
+        rhai::Token::LeftBracket => "bracket",
+        rhai::Token::RightBracket => "bracket",
+        rhai::Token::Plus => "operator",
+        rhai::Token::UnaryPlus => "operator",
+        rhai::Token::Minus => "operator",
+        rhai::Token::UnaryMinus => "operator",
+        rhai::Token::Multiply => "operator",
+        rhai::Token::Divide => "operator",
+        rhai::Token::Modulo => "operator",
+        rhai::Token::PowerOf => "operator",
+        rhai::Token::LeftShift => "operator",
+        rhai::Token::RightShift => "operator",
+        rhai::Token::SemiColon => "operator",
+        rhai::Token::Colon => "operator",
+        rhai::Token::DoubleColon => "operator",
+        rhai::Token::Comma => "operator",
+        rhai::Token::Period => "operator",
+        rhai::Token::MapStart => "bracket",
+        rhai::Token::Equals => "operator",
+        rhai::Token::True => "builtin",
+        rhai::Token::False => "builtin",
+        rhai::Token::Let => "keyword",
+        rhai::Token::Const => "keyword",
+        rhai::Token::If => "keyword",
+        rhai::Token::Else => "keyword",
+        rhai::Token::While => "keyword",
+        rhai::Token::Loop => "keyword",
+        rhai::Token::For => "keyword",
+        rhai::Token::In => "keyword",
+        rhai::Token::LessThan => "operator",
+        rhai::Token::GreaterThan => "operator",
+        rhai::Token::LessThanEqualsTo => "operator",
+        rhai::Token::GreaterThanEqualsTo => "operator",
+        rhai::Token::EqualsTo => "operator",
+        rhai::Token::NotEqualsTo => "operator",
+        rhai::Token::Bang => "operator",
+        rhai::Token::Pipe => "operator",
+        rhai::Token::Or => "operator",
+        rhai::Token::XOr => "operator",
+        rhai::Token::Ampersand => "operator",
+        rhai::Token::And => "operator",
+        rhai::Token::Fn => "keyword",
+        rhai::Token::Continue => "keyword",
+        rhai::Token::Break => "keyword",
+        rhai::Token::Return => "keyword",
+        rhai::Token::Throw => "keyword",
+        rhai::Token::PlusAssign => "operator",
+        rhai::Token::MinusAssign => "operator",
+        rhai::Token::MultiplyAssign => "operator",
+        rhai::Token::DivideAssign => "operator",
+        rhai::Token::LeftShiftAssign => "operator",
+        rhai::Token::RightShiftAssign => "operator",
+        rhai::Token::AndAssign => "operator",
+        rhai::Token::OrAssign => "operator",
+        rhai::Token::XOrAssign => "operator",
+        rhai::Token::ModuloAssign => "operator",
+        rhai::Token::PowerOfAssign => "operator",
+        rhai::Token::Private => "keyword",
+        rhai::Token::Import => "keyword",
+        rhai::Token::Export => "keyword",
+        rhai::Token::As => "keyword",
+        rhai::Token::Comment(_) => "comment",
+        rhai::Token::LexError(e) => {
             console::log_1(&JsValue::from_str(&format!("LexError: {}", e)));
             "error"
         }
-        token::Token::EOF => return Ok(None),
+        rhai::Token::EOF => return Ok(None),
     };
     match &next_token {
-        token::Token::Fn | token::Token::Let | token::Token::As | token::Token::For => {
+        rhai::Token::Fn | rhai::Token::Let | rhai::Token::As | rhai::Token::For => {
             state.is_defining_identifier = true;
         }
-        token::Token::LineComment | token::Token::BlockComment => {}
+        rhai::Token::Comment(_) => {}
         _ => {
             state.is_defining_identifier = false;
         }
