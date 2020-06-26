@@ -46,6 +46,50 @@ wasmImport.then(module => {
         },
     });
 
+    /**
+     * 
+     * @param {CodeMirror.Editor} editor 
+     */
+    function tryCompileScript(editor) {
+        for (const mark of editor.getAllMarks()) {
+            mark.clear();
+        }
+        try {
+            module.compile_script(editor.getValue());
+        } catch (e) {
+            console.log("Parse error:", e);
+            if (typeof e.message === "string" && e.line && e.column) {
+                editor.markText(
+                    { line: e.line - 1, ch: e.column - 1 },
+                    { line: e.line - 1, ch: e.column },
+                    {
+                        className: "rhai-error",
+                        title: e.message,
+                    },
+                );
+            }
+        }
+    }
+
+    const tryCompileDebounced = {
+        delayMsec: 500,
+        timeout: null,
+        trigger(arg) {
+            if (this.timeout !== null) {
+                window.clearTimeout(this.timeout);
+            }
+            this.timeout = window.setTimeout(() => this._fire(arg), this.delayMsec);
+        },
+        _fire(editor) {
+            tryCompileScript(editor)
+        },
+    };
+    editor.on("change", (editor, changes) => {
+        tryCompileDebounced.trigger(editor);
+    });
+
+    tryCompileDebounced.trigger(editor);
+
     function doRunScript() {
         let resultEl = document.getElementById('result');
         resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;

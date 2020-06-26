@@ -1,4 +1,9 @@
-use rhai::packages::{EvalPackage, Package};
+use rhai::{
+    packages::{EvalPackage, Package},
+    ParseError,
+};
+use wasm_bindgen::JsValue;
+use web_sys::console;
 
 pub fn run_script(
     script: &str,
@@ -16,4 +21,33 @@ pub fn run_script(
 
     let result: rhai::Dynamic = engine.eval_ast(&script_ast).map_err(|e| e.to_string())?;
     Ok(result.to_string())
+}
+
+thread_local! {
+    static ENGINE_FOR_AST_ONLY: rhai::Engine = rhai::Engine::new();
+}
+
+pub fn compile_ast(script: &str) -> Result<String, JsValue> {
+    ENGINE_FOR_AST_ONLY.with(|engine| {
+        let script_ast = engine.compile(&script).map_err(parse_error_to_js)?;
+        console::log_1(&JsValue::from_str("Script compiled to AST!"));
+        Ok("".into())
+    })
+}
+
+#[derive(serde::Serialize)]
+struct OutParseError {
+    message: String,
+    line: Option<u32>,
+    column: Option<u32>,
+}
+
+fn parse_error_to_js(e: ParseError) -> JsValue {
+    let ParseError(err, pos) = e;
+    let res = OutParseError {
+        message: err.to_string(),
+        line: pos.line().map(|x| x as u32),
+        column: pos.position().map(|x| x as u32),
+    };
+    JsValue::from_serde(&res).unwrap()
 }
