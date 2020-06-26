@@ -16,6 +16,7 @@ pub struct State {
     token_state: token::State,
     unclosed_bracket_count: i32,
     line_indent: u32,
+    is_defining_identifier: bool,
 }
 
 thread_local! {
@@ -36,6 +37,7 @@ impl RhaiMode {
             token_state: token::State::new(),
             unclosed_bracket_count: 0,
             line_indent: 0,
+            is_defining_identifier: false,
         }
     }
 
@@ -82,7 +84,7 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
 
     let (next_token, _) = token::next_token(&mut state.token_state, &stream)
         .ok_or_else(|| "Failed to get next token")?;
-    match next_token {
+    match &next_token {
         token::Token::LeftBrace
         | token::Token::LeftBracket
         | token::Token::LeftParen
@@ -97,10 +99,16 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         }
         _ => {}
     };
-    let res = match next_token {
+    let res = match &next_token {
         token::Token::IntegerConstant() => "number",
         token::Token::FloatConstant() => "number",
-        token::Token::Identifier() => "variable",
+        token::Token::Identifier() => {
+            if state.is_defining_identifier {
+                "def"
+            } else {
+                "variable"
+            }
+        }
         token::Token::CharConstant() => "string-2",
         token::Token::StringConst() => "string",
         token::Token::LeftBrace => "bracket",
@@ -175,6 +183,15 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
             "error"
         }
         token::Token::EOF => return Ok(None),
+    };
+    match &next_token {
+        token::Token::Fn | token::Token::Let | token::Token::As | token::Token::For => {
+            state.is_defining_identifier = true;
+        }
+        token::Token::LineComment | token::Token::BlockComment => {}
+        _ => {
+            state.is_defining_identifier = false;
+        }
     };
     Ok(Some(res.to_owned()))
 }
