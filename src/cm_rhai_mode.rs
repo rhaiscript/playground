@@ -1,29 +1,40 @@
 use crate::codemirror;
+use js_sys::RegExp;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
 mod token;
 
 #[wasm_bindgen]
-pub struct RhaiMode {}
+pub struct RhaiMode {
+    indent_unit: u32,
+}
 
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct State {
-    token_state: Box<token::State>,
+    token_state: token::State,
+    unclosed_bracket_count: i32,
+    line_indent: u32,
+}
+
+thread_local! {
+    static ELECTRIC_INPUT: RegExp = RegExp::new("^\\s*[}\\])]$", "").into();
 }
 
 #[wasm_bindgen]
 impl RhaiMode {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(indent_unit: u32) -> Self {
+        Self { indent_unit }
     }
 
     #[wasm_bindgen(js_name = startState)]
     pub fn start_state(&self) -> State {
         State {
-            token_state: Box::new(token::State::new()),
+            token_state: token::State::new(),
+            unclosed_bracket_count: 0,
+            line_indent: 0,
         }
     }
 
@@ -44,11 +55,42 @@ impl RhaiMode {
     // pub fn blank_line(&self, state: &mut State) -> Result<(), JsValue> {
     //     Ok(())
     // }
+
+    pub fn indent(&self, state: &mut State, text_after: String) -> JsValue {
+        indent(self, state, text_after)
+            .map(JsValue::from)
+            .unwrap_or_else(|| codemirror::CODEMIRROR_PASS.clone())
+    }
+
+    #[wasm_bindgen(getter, js_name = electricInput)]
+    pub fn electric_input(&self) -> RegExp {
+        ELECTRIC_INPUT.with(|v| v.clone())
+    }
 }
 
 fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<String>, JsValue> {
+    if stream.sol() {
+        state.line_indent = stream.indentation();
+        state.unclosed_bracket_count = 0;
+    }
+
     let (next_token, _) = token::next_token(&mut state.token_state, &stream)
         .ok_or_else(|| "Failed to get next token")?;
+    match next_token {
+        token::Token::LeftBrace
+        | token::Token::LeftBracket
+        | token::Token::LeftParen
+        | token::Token::MapStart => {
+            if state.unclosed_bracket_count < 0 {
+                state.unclosed_bracket_count = 0;
+            }
+            state.unclosed_bracket_count += 1;
+        }
+        token::Token::RightBrace | token::Token::RightBracket | token::Token::RightParen => {
+            state.unclosed_bracket_count -= 1;
+        }
+        _ => {}
+    };
     let res = match next_token {
         token::Token::IntegerConstant() => "number",
         token::Token::FloatConstant() => "number",
@@ -129,4 +171,25 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         token::Token::EOF => return Ok(None),
     };
     Ok(Some(res.to_owned()))
+}
+
+fn indent(mode: &RhaiMode, state: &State, text_after: String) -> Option<u32> {
+    let should_dedent = || {
+        text_after
+            .trim_start()
+            .starts_with(['}', ']', ')'].as_ref())
+    };
+    if state.unclosed_bracket_count > 0 {
+        if should_dedent() {
+            Some(state.line_indent)
+        } else {
+            Some(state.line_indent + mode.indent_unit)
+        }
+    } else {
+        if should_dedent() {
+            Some(state.line_indent.saturating_sub(mode.indent_unit))
+        } else {
+            None
+        }
+    }
 }

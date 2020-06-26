@@ -78,3 +78,9 @@ extern "C" {
     // #[must_use]
     // pub fn base_token(this: &StringStream) -> JsValue;
 }
+
+#[wasm_bindgen(module = "codemirror")]
+extern "C" {
+    #[wasm_bindgen(getter, js_name = Pass)]
+    pub static CODEMIRROR_PASS: JsValue;
+}

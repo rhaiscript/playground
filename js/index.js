@@ -13,7 +13,7 @@ run(10);
 
 wasmImport.then(module => {
     CodeMirror.defineMode("rhai", (cfg, mode) => {
-        return new module.RhaiMode();
+        return new module.RhaiMode(cfg.indentUnit);
     });
 
     const editor = CodeMirror(document.getElementById('editorContainer'), {
