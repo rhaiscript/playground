@@ -2,6 +2,7 @@ const wasmImport = import("../pkg/index.js").catch(console.error);
 
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
+import "codemirror/addon/edit/closebrackets"
 
 const initialCode = `\
 fn run(a) {
@@ -21,6 +22,12 @@ wasmImport.then(module => {
         mode: "rhai",
         lineNumbers: true,
         indentUnit: 4,
+        autoCloseBrackets: {
+            pairs: `()[]{}''""`,
+            closeBefore: `)]}'":;,`,
+            triples: "",
+            explode: "()[]{}",
+        },
         extraKeys: {
             "Tab": cm => {
                 // This function is a modification of `defaultTab` to insert soft
