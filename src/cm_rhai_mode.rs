@@ -20,6 +20,7 @@ pub struct State {
 
 thread_local! {
     static ELECTRIC_INPUT: RegExp = RegExp::new("^\\s*[}\\])]$", "").into();
+    static LINE_COMMENT: JsValue = JsValue::from_str("//");
 }
 
 #[wasm_bindgen]
@@ -65,6 +66,11 @@ impl RhaiMode {
     #[wasm_bindgen(getter, js_name = electricInput)]
     pub fn electric_input(&self) -> RegExp {
         ELECTRIC_INPUT.with(|v| v.clone())
+    }
+
+    #[wasm_bindgen(getter, js_name = lineComment)]
+    pub fn line_comment(&self) -> JsValue {
+        LINE_COMMENT.with(|v| v.clone())
     }
 }
 

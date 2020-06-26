@@ -3,6 +3,7 @@ const wasmImport = import("../pkg/index.js").catch(console.error);
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/addon/edit/closebrackets"
+import "codemirror/addon/comment/comment"
 
 const initialCode = `\
 fn run(a) {
@@ -41,6 +42,7 @@ wasmImport.then(module => {
             "Ctrl-Enter": cm => {
                 doRunScript();
             },
+            "Ctrl-/": "toggleComment",
         },
     });
 
