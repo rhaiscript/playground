@@ -1,5 +1,6 @@
 use crate::codemirror;
 use js_sys::RegExp;
+use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
@@ -20,6 +21,13 @@ pub struct State {
 thread_local! {
     static ELECTRIC_INPUT: RegExp = RegExp::new("^\\s*[}\\])]$", "").into();
     static LINE_COMMENT: JsValue = JsValue::from_str("//");
+    static CODEMIRROR_PASS: RefCell<JsValue> = RefCell::new(JsValue::null());
+}
+
+#[wasm_bindgen]
+#[allow(dead_code)]
+pub fn init_codemirror_pass(codemirror_pass: JsValue) {
+    CODEMIRROR_PASS.with(|v| v.replace(codemirror_pass));
 }
 
 #[wasm_bindgen]
@@ -63,7 +71,7 @@ impl RhaiMode {
     pub fn indent(&self, state: &mut State, text_after: String) -> JsValue {
         indent(self, state, text_after)
             .map(JsValue::from)
-            .unwrap_or_else(|| codemirror::CODEMIRROR_PASS.clone())
+            .unwrap_or_else(|| CODEMIRROR_PASS.with(|v| v.borrow().clone()))
     }
 
     #[wasm_bindgen(getter, js_name = electricInput)]

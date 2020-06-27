@@ -12,6 +12,8 @@ import "codemirror/addon/fold/foldgutter.css"
 import "codemirror/addon/search/match-highlighter"
 import "codemirror/addon/selection/active-line"
 
+wasm.init_codemirror_pass(CodeMirror.Pass);
+
 const initialCode = `\
 fn run(a) {
     let b = a + 1;

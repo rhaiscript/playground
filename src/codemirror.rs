@@ -79,8 +79,15 @@ extern "C" {
     // pub fn base_token(this: &StringStream) -> JsValue;
 }
 
-#[wasm_bindgen(module = "codemirror")]
-extern "C" {
-    #[wasm_bindgen(getter, js_name = Pass)]
-    pub static CODEMIRROR_PASS: JsValue;
-}
+// Note: JavaScript fields must not be imported using this method when this
+//       WASM module is also to be used in Web Workers. This method will cause
+//       wasm-bindgen to pull in the referenced module even when in a Web
+//       Worker, which will cause serious code bloat even if it doesn't error
+//       out. The alternative is to provide an initializer function that is
+//       called from JavaScript when used in the page context. (In this case
+//       the function is `cm_rhai_mode::init_codemirror_pass`.)
+// #[wasm_bindgen(module = "codemirror")]
+// extern "C" {
+//     #[wasm_bindgen(getter, js_name = Pass)]
+//     pub static CODEMIRROR_PASS: JsValue;
+// }
