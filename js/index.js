@@ -34,6 +34,20 @@ for (let key of exampleScriptsImport.keys()) {
     exampleScriptSelect.appendChild(opt);
 }
 
+// Include all the CodeMirror themes but load lazily:
+const cmThemesImport = require.context("codemirror/theme/", false, /\.css$/, "lazy");
+const cmThemeSelect = document.getElementById("cmThemeSelect");
+for (let key of cmThemesImport.keys()) {
+    const opt = document.createElement("option");
+    if (!key.startsWith("./") || !key.endsWith(".css")) {
+        continue;
+    }
+    key = key.substring(2, key.length - 4);
+    opt.value = key;
+    opt.innerText = key;
+    cmThemeSelect.appendChild(opt);
+}
+
 wasmImport.then(module => {
     CodeMirror.defineMode("rhai", (cfg, mode) => {
         return new module.RhaiMode(cfg.indentUnit);
@@ -169,6 +183,22 @@ wasmImport.then(module => {
         }).catch(e => {
             console.error("Error loading script", e);
             editor.setOption("readOnly", false);
+        });
+    });
+
+    cmThemeSelect.addEventListener("change", ev => {
+        const theme = cmThemeSelect.value;
+        if (!theme) {
+            return;
+        }
+        if (theme === "default") {
+            editor.setOption("theme", "default");
+            return;
+        }
+        cmThemesImport(`./${theme}.css`).then(module => {
+            editor.setOption("theme", theme);
+        }).catch(e => {
+            console.error("Error loading theme", e);
         });
     });
 });
