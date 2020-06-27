@@ -203,7 +203,11 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         rhai::Token::EOF => return Ok(None),
     };
     match &next_token {
-        rhai::Token::Fn | rhai::Token::Let | rhai::Token::As | rhai::Token::For => {
+        rhai::Token::Fn
+        | rhai::Token::Let
+        | rhai::Token::Const
+        | rhai::Token::As
+        | rhai::Token::For => {
             state.is_defining_identifier = true;
         }
         rhai::Token::Comment(_) => {}
