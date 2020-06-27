@@ -38,14 +38,22 @@ for (let key of exampleScriptsImport.keys()) {
 const cmThemesImport = require.context("codemirror/theme/", false, /\.css$/, "lazy");
 const cmThemeSelect = document.getElementById("cmThemeSelect");
 for (let key of cmThemesImport.keys()) {
-    const opt = document.createElement("option");
     if (!key.startsWith("./") || !key.endsWith(".css")) {
         continue;
     }
     key = key.substring(2, key.length - 4);
-    opt.value = key;
-    opt.innerText = key;
-    cmThemeSelect.appendChild(opt);
+    function addOpt(key, name) {
+        const opt = document.createElement("option");
+        opt.value = name ? `${key}/${name}` : key;
+        opt.innerText = name || key;
+        cmThemeSelect.appendChild(opt);
+    }
+    if (key === "solarized") {
+        addOpt(key, `${key} dark`);
+        addOpt(key, `${key} light`);
+    } else {
+        addOpt(key);
+    }
 }
 
 CodeMirror.defineMode("rhai", (cfg, mode) => {
@@ -197,7 +205,8 @@ function initEditor() {
     });
 
     cmThemeSelect.addEventListener("change", ev => {
-        const theme = cmThemeSelect.value;
+        let theme = cmThemeSelect.value;
+        let themeFile = theme;
         if (!theme) {
             return;
         }
@@ -205,7 +214,12 @@ function initEditor() {
             editor.setOption("theme", "default");
             return;
         }
-        cmThemesImport(`./${theme}.css`).then(module => {
+        const slash = theme.indexOf("/");
+        if (slash !== -1) {
+            themeFile = theme.substring(0, slash);
+            theme = theme.substring(slash + 1);
+        }
+        cmThemesImport(`./${themeFile}.css`).then(module => {
             editor.setOption("theme", theme);
         }).catch(e => {
             console.error("Error loading theme", e);
