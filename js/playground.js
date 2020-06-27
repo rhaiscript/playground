@@ -99,6 +99,29 @@ const tryCompileDebounced = {
     },
 };
 
+const runScriptButton = document.getElementById("runScriptButton");
+
+function doRunScript(editor) {
+    let script = editor.getValue();
+    let resultEl = document.getElementById('result');
+    resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
+    runScriptButton.disabled = true;
+    setTimeout(() => {
+        try {
+            let result = wasm.run_script(script, s => {
+                resultEl.value += `[PRINT] ${s}\n`;
+            }, s => {
+                resultEl.value += `[DEBUG] ${s}\n`;
+            });
+            resultEl.value += `\nScript returned: "${result}"`;
+        } catch (ex) {
+            resultEl.value += `\nEXCEPTION: "${ex}"`;
+        }
+        resultEl.value += `\nFinished at ${new Date().toISOString()}`;
+        runScriptButton.disabled = false;
+    }, 10);
+}
+
 function initEditor() {
     const editor = CodeMirror(document.getElementById('editorContainer'), {
         value: initialCode,
@@ -142,7 +165,7 @@ function initEditor() {
                 }
             },
             "Ctrl-Enter": cm => {
-                doRunScript();
+                doRunScript(cm);
             },
             "Ctrl-/": "toggleComment",
         },
@@ -153,24 +176,10 @@ function initEditor() {
     });
 
     tryCompileDebounced.trigger(editor);
-
-    function doRunScript() {
-        let resultEl = document.getElementById('result');
-        resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
-        try {
-            let script = editor.getValue();
-            let result = wasm.run_script(script, s => {
-                resultEl.value += `[PRINT] ${s}\n`;
-            }, s => {
-                resultEl.value += `[DEBUG] ${s}\n`;
-            });
-            resultEl.value += `\nScript returned: "${result}"`;
-        } catch (ex) {
-            resultEl.value += `\nEXCEPTION: "${ex}"`;
-        }
-        resultEl.value += `\nFinished at ${new Date().toISOString()}`;
-    }
-    window.btnClick = doRunScript;
+    
+    runScriptButton.addEventListener("click", ev => {
+        doRunScript(editor);
+    });
 
     exampleScriptSelect.addEventListener("change", ev => {
         if (!exampleScriptSelect.value) {
