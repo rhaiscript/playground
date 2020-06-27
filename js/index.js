@@ -47,19 +47,24 @@ wasmImport.then(module => {
     });
 
     /**
+     * @type CodeMirror.TextMarker?
+     */
+    let lastErrorMarker = null;
+    /**
      * 
      * @param {CodeMirror.Editor} editor 
      */
     function tryCompileScript(editor) {
-        for (const mark of editor.getAllMarks()) {
-            mark.clear();
+        if (lastErrorMarker) {
+            lastErrorMarker.clear();
+            lastErrorMarker = null;
         }
         try {
             module.compile_script(editor.getValue());
         } catch (e) {
             console.log("Parse error:", e);
             if (typeof e.message === "string" && e.line && e.column) {
-                editor.markText(
+                lastErrorMarker = editor.markText(
                     { line: e.line - 1, ch: e.column - 1 },
                     { line: e.line - 1, ch: e.column },
                     {
