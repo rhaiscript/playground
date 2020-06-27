@@ -1,5 +1,7 @@
 import * as wasm from "../pkg/index.js";
 
+import { runScript } from "./playground-runner";
+
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/addon/comment/comment"
@@ -111,7 +113,7 @@ const tryCompileDebounced = {
 
 const runScriptButton = document.getElementById("runScriptButton");
 
-function doRunScript(editor) {
+function doRunScriptSync(editor) {
     let script = editor.getValue();
     let resultEl = document.getElementById('result');
     resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
@@ -128,8 +130,52 @@ function doRunScript(editor) {
             resultEl.value += `\nEXCEPTION: "${ex}"`;
         }
         resultEl.value += `\nFinished at ${new Date().toISOString()}`;
+        // Scroll to bottom
+        resultEl.scrollTop = resultEl.scrollHeight - resultEl.clientHeight;
         runScriptButton.disabled = false;
     }, 10);
+}
+
+let runScriptPromise = null;
+async function doRunScriptAsync(editor) {
+    if (runScriptPromise) {
+        console.log("Blocked run script request as another script is already running.");
+        return;
+    }
+    let script = editor.getValue();
+    let el = document.getElementById('result');
+    el.value = "";
+    function appendOutput(line) {
+        // FIXME: The auto-scroll code causes a lot of extra layout events,
+        //        which drastically slows down if the script prints a lot of
+        //        lines. Can it be made less bad?
+        const scroll = el.scrollTop === el.scrollHeight - el.clientHeight;
+        el.value += line + "\n";
+        if (scroll) {
+            el.scrollTop = el.scrollHeight - el.clientHeight;
+        }
+    }
+    runScriptButton.disabled = true;
+    try {
+        await (runScriptPromise = runScript(script, appendOutput));
+    } finally {
+        runScriptButton.disabled = false;
+        runScriptPromise = null;
+    }
+}
+
+const runScriptOnWorkerCheckbox = document.getElementById("runScriptOnWorker");
+let isScriptRunning = false;
+function doRunScript(editor) {
+    isScriptRunning = true;
+    if (runScriptOnWorkerCheckbox.checked) {
+        doRunScriptAsync(editor).then(() => {
+            isScriptRunning = false;
+        });
+    } else {
+        doRunScriptSync(editor);
+        isScriptRunning = false;
+    }
 }
 
 function initEditor() {
@@ -186,7 +232,7 @@ function initEditor() {
     });
 
     tryCompileDebounced.trigger(editor);
-    
+
     runScriptButton.addEventListener("click", ev => {
         doRunScript(editor);
     });
