@@ -20,6 +20,20 @@ fn run(a) {
 run(10);
 `;
 
+// With the help of webpack, we can get a list of all the example script files
+// and the ability to lazily load them on demand:
+const exampleScriptsImport = require.context("!raw-loader!../example-scripts/", false, /\.rhai$/, "lazy");
+const exampleScriptSelect = document.getElementById("exampleScriptSelect");
+for (let key of exampleScriptsImport.keys()) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    if (key.startsWith("./")) {
+        key = key.substr(2);
+    }
+    opt.innerText = key;
+    exampleScriptSelect.appendChild(opt);
+}
+
 wasmImport.then(module => {
     CodeMirror.defineMode("rhai", (cfg, mode) => {
         return new module.RhaiMode(cfg.indentUnit);
@@ -106,10 +120,13 @@ wasmImport.then(module => {
     const tryCompileDebounced = {
         delayMsec: 500,
         timeout: null,
-        trigger(arg) {
+        cancel() {
             if (this.timeout !== null) {
                 window.clearTimeout(this.timeout);
             }
+        },
+        trigger(arg) {
+            this.cancel();
             this.timeout = window.setTimeout(() => this._fire(arg), this.delayMsec);
         },
         _fire(editor) {
@@ -139,4 +156,19 @@ wasmImport.then(module => {
         resultEl.value += `\nFinished at ${new Date().toISOString()}`;
     }
     window.btnClick = doRunScript;
+
+    exampleScriptSelect.addEventListener("change", ev => {
+        if (!exampleScriptSelect.value) {
+            return;
+        }
+        tryCompileDebounced.cancel();
+        editor.setOption("readOnly", true);
+        exampleScriptsImport(exampleScriptSelect.value).then(module => {
+            editor.setValue(module.default);
+            editor.setOption("readOnly", false);
+        }).catch(e => {
+            console.error("Error loading script", e);
+            editor.setOption("readOnly", false);
+        });
+    });
 });
