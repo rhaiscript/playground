@@ -2,8 +2,15 @@ const wasmImport = import("../pkg/index.js").catch(console.error);
 
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
-import "codemirror/addon/edit/closebrackets"
 import "codemirror/addon/comment/comment"
+import "codemirror/addon/display/rulers"
+import "codemirror/addon/edit/closebrackets"
+import "codemirror/addon/edit/matchbrackets"
+import "codemirror/addon/fold/brace-fold"
+import "codemirror/addon/fold/foldgutter"
+import "codemirror/addon/fold/foldgutter.css"
+import "codemirror/addon/search/match-highlighter"
+import "codemirror/addon/selection/active-line"
 
 const initialCode = `\
 fn run(a) {
@@ -23,6 +30,26 @@ wasmImport.then(module => {
         mode: "rhai",
         lineNumbers: true,
         indentUnit: 4,
+        matchBrackets: true,
+        foldGutter: {
+            rangeFinder: CodeMirror.fold.brace,
+        },
+        gutters: [
+            "CodeMirror-linenumbers",
+            "CodeMirror-foldgutter",
+        ],
+        styleActiveLine: true,
+        highlightSelectionMatches: {
+            minChars: 3,
+            showToken: true,
+            annotateScrollbar: true,
+        },
+        rulers: [
+            {
+                column: 80,
+                color: "#ccc",
+            },
+        ],
         autoCloseBrackets: {
             pairs: `()[]{}''""`,
             closeBefore: `)]}'":;,`,
