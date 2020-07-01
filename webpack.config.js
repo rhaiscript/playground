@@ -1,6 +1,7 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 const dist = path.resolve(__dirname, "dist");
 
@@ -24,6 +25,9 @@ module.exports = {
     }, {
       test: /\.ttf$/,
       use: ['file-loader'],
+    }, {
+      test: /\.vue$/,
+      use: ['vue-loader'],
     }],
   },
   plugins: [
@@ -34,5 +38,7 @@ module.exports = {
     new WasmPackPlugin({
       crateDirectory: __dirname,
     }),
-  ]
+
+    new VueLoaderPlugin(),
+  ],
 };
