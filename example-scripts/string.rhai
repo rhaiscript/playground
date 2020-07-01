@@ -10,8 +10,8 @@ print("foo" < "bar");           // string comparison
 print("foo" >= "bar");          // string comparison
 print("the answer is " + 42);   // string building using non-string types
 
-let s = "hello, world!";        // string variable
-print("length=" + s.len);       // should be 13
+let s = "\u2764" hello, world! \U0001F603"; // string variable
+print("length=" + s.len);       // should be 17
 
-s[s.len-1] = '?';               // change the string
+s[s.len-3] = '?';               // change the string
 print("Question: " + s);        // should print 'Question: hello, world?'

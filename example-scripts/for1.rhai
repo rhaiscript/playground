@@ -12,6 +12,6 @@ for a in arr {
 //print(a);                 // <- if you uncomment this line, the script will fail to run
                             //    because 'a' is not defined here
 
-for i in range(0, 5) {      // runs through a range from 1 to 5 exclusive
+for i in range(0, 5) {      // runs through a range from 0 to 4
     print(i);
 }
