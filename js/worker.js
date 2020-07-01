@@ -13,6 +13,11 @@ async function runScript(script) {
             output(`[PRINT] ${s}`);
         }, s => {
             output(`[DEBUG] ${s}`);
+        }, ops => {
+            self.postMessage({
+                req: "runScript/updateOps",
+                ops,
+            });
         });
         output(`\nScript returned: "${result}"`);
     } catch (ex) {

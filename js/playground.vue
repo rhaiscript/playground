@@ -4,14 +4,18 @@
     max-height: 100%;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr 1fr;
+    grid-template-rows: auto auto 1fr 1fr;
 }
 @media screen and (min-width: 900px) {
     .playgroundTop {
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto auto 1fr;
     }
     .header {
+        grid-column-start: 1;
+        grid-column-end: 3;
+    }
+    .runHeader {
         grid-column-start: 1;
         grid-column-end: 3;
     }
@@ -46,10 +50,6 @@
 <template>
     <div class="playgroundTop">
         <header class="header">
-            <!--prettyhtml-preserve-whitespace-->
-            <button type="button" @click="requestRun" :disabled="runDisabled">
-                Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
-            </button>
             <select v-model="selectedExampleScript" :disabled="exampleScriptChangePromise !== null">
                 <option value>(example scripts...)</option>
                 <option v-for="i in exampleScriptList" :key="i.value" :value="i.value">{{ i.text }}</option>
@@ -64,6 +64,20 @@
             <label style="display: inline-block;">
                 <input type="checkbox" v-model="isRunScriptOnWorker" />
                 Run script asynchronously on Web Worker
+            </label>
+        </header>
+        <header class="runHeader">
+            <!--prettyhtml-preserve-whitespace-->
+            <button type="button" @click="requestRun" :disabled="runDisabled">
+                Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
+            </button>
+            <button type="button" @click="stopScript" :disabled="stopDisabled">Stop</button>
+            <span v-show="!isScriptRunning">Idle</span>
+            <span v-show="isScriptRunning">Running...</span>
+            /
+            <label>
+                Ops:
+                <input type="text" :value="runningOpsDisplay" readonly style="width: 100px;" />
             </label>
         </header>
         <editor
@@ -82,7 +96,7 @@
 import * as wasm from "../pkg/index.js";
 
 import Editor from "./components/editor.vue";
-import { runScript } from "./playground-runner";
+import * as Runner from "./playground-runner";
 
 import CodeMirror from "codemirror";
 
@@ -179,7 +193,7 @@ function initEditor() {
     }
 
     let runScriptPromise = null;
-    async function doRunScriptAsync(editor, el) {
+    async function doRunScriptAsync(editor, el, updateOps) {
         if (runScriptPromise) {
             console.log(
                 "Blocked run script request as another script is already running."
@@ -203,14 +217,16 @@ function initEditor() {
             }
         }
         try {
-            await (runScriptPromise = runScript(script, appendOutput));
+            await (runScriptPromise = Runner.runScript(script, appendOutput, updateOps));
+        } catch (ex) {
+            appendOutput(`\nEXCEPTION: "${ex}"`);
         } finally {
             runScriptPromise = null;
         }
     }
 
     let isScriptRunning = false;
-    async function doRunScript(editor, isAsync, resultEl) {
+    async function doRunScript(editor, isAsync, resultEl, updateOps) {
         if (isScriptRunning) {
             console.log(
                 "Blocked run script request as another script is already running."
@@ -219,7 +235,7 @@ function initEditor() {
         }
         isScriptRunning = true;
         if (isAsync) {
-            await doRunScriptAsync(editor, resultEl);
+            await doRunScriptAsync(editor, resultEl, updateOps);
         } else {
             await doRunScriptSync(editor, resultEl);
         }
@@ -279,11 +295,20 @@ export default {
             cmThemeChangePromise: null,
             isRunScriptOnWorker: true,
             isScriptRunning: false,
+            runningOps: null,
+            stopDisabled: true,
         };
     },
     computed: {
         runDisabled() {
             return this.isScriptRunning || this.exampleScriptChangePromise !== null;
+        },
+        runningOpsDisplay() {
+            if (this.runningOps !== null) {
+                return this.runningOps.toLocaleString();
+            } else {
+                return "-";
+            }
         },
     },
     methods: {
@@ -295,7 +320,19 @@ export default {
                 return;
             }
             this.isScriptRunning = true;
-            await this.$_r.doRunScript(this.$refs.editor.getEditor(), this.isRunScriptOnWorker, this.$refs.result);
+            if (this.isRunScriptOnWorker) {
+                this.stopDisabled = false;
+            }
+            this.runningOps = null;
+            await this.$_r.doRunScript(
+                this.$refs.editor.getEditor(),
+                this.isRunScriptOnWorker,
+                this.$refs.result,
+                ops => {
+                    this.runningOps = ops;
+                },
+            );
+            this.stopDisabled = true;
             this.isScriptRunning = false;
         },
         /**
@@ -303,6 +340,9 @@ export default {
          */
         getEditor() {
             return this.$refs.editor.getEditor();
+        },
+        stopScript() {
+            Runner.stopScript();
         },
     },
     watch: {

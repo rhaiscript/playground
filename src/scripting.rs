@@ -9,9 +9,22 @@ pub fn run_script(
     script: &str,
     print_callback: impl Fn(&str) + 'static,
     debug_callback: impl Fn(&str) + 'static,
+    progress_callback: impl Fn(u64) + 'static,
 ) -> Result<String, String> {
     let engine = {
         let mut engine = rhai::Engine::new();
+        engine.on_progress(move |&ops| {
+            // TODO: Automatically adjust interval according to speed
+            let interval = if cfg!(debug_assertions) {
+                100_000
+            } else {
+                1_000_000
+            };
+            if ops % interval == 0 {
+                progress_callback(ops);
+            }
+            true
+        });
         engine.load_package(EvalPackage::new().get());
         engine.on_print(move |s| print_callback(s));
         engine.on_debug(move |s| debug_callback(s));
