@@ -47,7 +47,7 @@
     <div class="playgroundTop">
         <header class="header">
             <!--prettyhtml-preserve-whitespace-->
-            <button type="button" id="runScriptButton" @click="requestRun">
+            <button type="button" @click="requestRun" :disabled="runDisabled">
                 Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
             </button>
             <select v-model="selectedExampleScript" :disabled="exampleScriptChangePromise !== null">
@@ -62,7 +62,7 @@
                 </select>
             </label>
             <label style="display: inline-block;">
-                <input id="runScriptOnWorker" type="checkbox" checked />
+                <input type="checkbox" v-model="isRunScriptOnWorker" />
                 Run script asynchronously on Web Worker
             </label>
         </header>
@@ -156,33 +156,32 @@ function initEditor() {
         },
     };
 
-    const runScriptButton = document.getElementById("runScriptButton");
-
     function doRunScriptSync(editor) {
         let script = editor.getValue();
         let resultEl = document.getElementById("result");
         resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
-        runScriptButton.disabled = true;
-        setTimeout(() => {
-            try {
-                let result = wasm.run_script(
-                    script,
-                    s => {
-                        resultEl.value += `[PRINT] ${s}\n`;
-                    },
-                    s => {
-                        resultEl.value += `[DEBUG] ${s}\n`;
-                    },
-                );
-                resultEl.value += `\nScript returned: "${result}"`;
-            } catch (ex) {
-                resultEl.value += `\nEXCEPTION: "${ex}"`;
-            }
-            resultEl.value += `\nFinished at ${new Date().toISOString()}`;
-            // Scroll to bottom
-            resultEl.scrollTop = resultEl.scrollHeight - resultEl.clientHeight;
-            runScriptButton.disabled = false;
-        }, 10);
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                try {
+                    let result = wasm.run_script(
+                        script,
+                        s => {
+                            resultEl.value += `[PRINT] ${s}\n`;
+                        },
+                        s => {
+                            resultEl.value += `[DEBUG] ${s}\n`;
+                        },
+                    );
+                    resultEl.value += `\nScript returned: "${result}"`;
+                } catch (ex) {
+                    resultEl.value += `\nEXCEPTION: "${ex}"`;
+                }
+                resultEl.value += `\nFinished at ${new Date().toISOString()}`;
+                // Scroll to bottom
+                resultEl.scrollTop = resultEl.scrollHeight - resultEl.clientHeight;
+                resolve();
+            }, 10);
+        });
     }
 
     let runScriptPromise = null;
@@ -210,20 +209,15 @@ function initEditor() {
                 el.scrollTop += 1000;
             }
         }
-        runScriptButton.disabled = true;
         try {
             await (runScriptPromise = runScript(script, appendOutput));
         } finally {
-            runScriptButton.disabled = false;
             runScriptPromise = null;
         }
     }
 
-    const runScriptOnWorkerCheckbox = document.getElementById(
-        "runScriptOnWorker"
-    );
     let isScriptRunning = false;
-    function doRunScript(editor) {
+    async function doRunScript(editor, isAsync) {
         if (isScriptRunning) {
             console.log(
                 "Blocked run script request as another script is already running."
@@ -231,19 +225,17 @@ function initEditor() {
             return;
         }
         isScriptRunning = true;
-        if (runScriptOnWorkerCheckbox.checked) {
-            doRunScriptAsync(editor).then(() => {
-                isScriptRunning = false;
-            });
+        if (isAsync) {
+            await doRunScriptAsync(editor);
         } else {
-            doRunScriptSync(editor);
-            isScriptRunning = false;
+            await doRunScriptSync(editor);
         }
+        isScriptRunning = false;
     }
 
     return {
         tryCompileDebounced,
-        doRunScript
+        doRunScript,
     };
 }
 
@@ -292,14 +284,26 @@ export default {
             selectedCmTheme: "default",
             cmThemeList,
             cmThemeChangePromise: null,
+            isRunScriptOnWorker: true,
+            isScriptRunning: false,
         };
+    },
+    computed: {
+        runDisabled() {
+            return this.isScriptRunning || this.exampleScriptChangePromise !== null;
+        },
     },
     methods: {
         codeChange(editor, changes) {
             this.$_r.tryCompileDebounced.trigger(editor);
         },
-        requestRun() {
-            this.$_r.doRunScript(this.$refs.editor.getEditor());
+        async requestRun() {
+            if (this.runDisabled) {
+                return;
+            }
+            this.isScriptRunning = true;
+            await this.$_r.doRunScript(this.$refs.editor.getEditor(), this.isRunScriptOnWorker);
+            this.isScriptRunning = false;
         },
         /**
          * @returns {CodeMirror.Editor}
