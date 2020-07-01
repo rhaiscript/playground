@@ -16,7 +16,7 @@
         grid-column-end: 3;
     }
 }
-#result {
+.result {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -72,13 +72,8 @@
             @change="codeChange"
             @requestRun="requestRun"
         ></editor>
-        <div id="outputContainer">
-            <textarea
-                readonly
-                id="result"
-                style="width: 100%; height: 100%; box-sizing: border-box; margin: 0;"
-                autocomplete="off"
-            ></textarea>
+        <div>
+            <textarea ref="result" class="result" readonly autocomplete="off"></textarea>
         </div>
     </div>
 </template>
@@ -156,9 +151,8 @@ function initEditor() {
         },
     };
 
-    function doRunScriptSync(editor) {
+    function doRunScriptSync(editor, resultEl) {
         let script = editor.getValue();
-        let resultEl = document.getElementById("result");
         resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -185,7 +179,7 @@ function initEditor() {
     }
 
     let runScriptPromise = null;
-    async function doRunScriptAsync(editor) {
+    async function doRunScriptAsync(editor, el) {
         if (runScriptPromise) {
             console.log(
                 "Blocked run script request as another script is already running."
@@ -193,7 +187,6 @@ function initEditor() {
             return;
         }
         let script = editor.getValue();
-        let el = document.getElementById("result");
         el.value = "";
         function appendOutput(line) {
             // FIXME: The auto-scroll code causes a lot of extra layout events,
@@ -217,7 +210,7 @@ function initEditor() {
     }
 
     let isScriptRunning = false;
-    async function doRunScript(editor, isAsync) {
+    async function doRunScript(editor, isAsync, resultEl) {
         if (isScriptRunning) {
             console.log(
                 "Blocked run script request as another script is already running."
@@ -226,9 +219,9 @@ function initEditor() {
         }
         isScriptRunning = true;
         if (isAsync) {
-            await doRunScriptAsync(editor);
+            await doRunScriptAsync(editor, resultEl);
         } else {
-            await doRunScriptSync(editor);
+            await doRunScriptSync(editor, resultEl);
         }
         isScriptRunning = false;
     }
@@ -302,7 +295,7 @@ export default {
                 return;
             }
             this.isScriptRunning = true;
-            await this.$_r.doRunScript(this.$refs.editor.getEditor(), this.isRunScriptOnWorker);
+            await this.$_r.doRunScript(this.$refs.editor.getEditor(), this.isRunScriptOnWorker, this.$refs.result);
             this.isScriptRunning = false;
         },
         /**
