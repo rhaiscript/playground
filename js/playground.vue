@@ -50,13 +50,15 @@
             <button type="button" id="runScriptButton" @click="requestRun">
                 Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
             </button>
-            <select id="exampleScriptSelect">
+            <select v-model="selectedExampleScript" :disabled="exampleScriptChangePromise !== null">
                 <option value>(example scripts...)</option>
+                <option v-for="i in exampleScriptList" :key="i.value" :value="i.value">{{ i.text }}</option>
             </select>
             <label style="display: inline-block;">
                 Theme:
-                <select id="cmThemeSelect">
+                <select v-model="selectedCmTheme" :disabled="cmThemeChangePromise !== null">
                     <option value="default">Default</option>
+                    <option v-for="i in cmThemeList" :key="i.value" :value="i.value">{{ i.text }}</option>
                 </select>
             </label>
             <label style="display: inline-block;">
@@ -103,43 +105,7 @@ fn run(a) {
 run(10);
 `;
 
-function initEditor(editor) {
-    // With the help of webpack, we can get a list of all the example script files
-    // and the ability to lazily load them on demand:
-    const exampleScriptsImport = require.context("!raw-loader!../example-scripts/", false, /\.rhai$/, "lazy");
-    const exampleScriptSelect = document.getElementById("exampleScriptSelect");
-    for (let key of exampleScriptsImport.keys()) {
-        const opt = document.createElement("option");
-        opt.value = key;
-        if (key.startsWith("./")) {
-            key = key.substr(2);
-        }
-        opt.innerText = key;
-        exampleScriptSelect.appendChild(opt);
-    }
-
-    // Include all the CodeMirror themes but load lazily:
-    const cmThemesImport = require.context("codemirror/theme/", false, /\.css$/, "lazy");
-    const cmThemeSelect = document.getElementById("cmThemeSelect");
-    for (let key of cmThemesImport.keys()) {
-        if (!key.startsWith("./") || !key.endsWith(".css")) {
-            continue;
-        }
-        key = key.substring(2, key.length - 4);
-        function addOpt(key, name) {
-            const opt = document.createElement("option");
-            opt.value = name ? `${key}/${name}` : key;
-            opt.innerText = name || key;
-            cmThemeSelect.appendChild(opt);
-        }
-        if (key === "solarized") {
-            addOpt(key, `${key} dark`);
-            addOpt(key, `${key} light`);
-        } else {
-            addOpt(key);
-        }
-    }
-
+function initEditor() {
     /**
      * @type CodeMirror.TextMarker?
      */
@@ -275,60 +241,58 @@ function initEditor(editor) {
         }
     }
 
-    exampleScriptSelect.addEventListener("change", ev => {
-        if (!exampleScriptSelect.value) {
-            return;
-        }
-        tryCompileDebounced.cancel();
-        editor.setOption("readOnly", true);
-        exampleScriptsImport(exampleScriptSelect.value)
-            .then(module => {
-                editor.setValue(module.default);
-                editor.setOption("readOnly", false);
-            })
-            .catch(e => {
-                console.error("Error loading script", e);
-                editor.setOption("readOnly", false);
-            });
-    });
-
-    cmThemeSelect.addEventListener("change", ev => {
-        let theme = cmThemeSelect.value;
-        let themeFile = theme;
-        if (!theme) {
-            return;
-        }
-        if (theme === "default") {
-            editor.setOption("theme", "default");
-            return;
-        }
-        const slash = theme.indexOf("/");
-        if (slash !== -1) {
-            themeFile = theme.substring(0, slash);
-            theme = theme.substring(slash + 1);
-        }
-        cmThemeSelect.disabled = true;
-        cmThemesImport(`./${themeFile}.css`)
-            .then(module => {
-                editor.setOption("theme", theme);
-            })
-            .catch(e => {
-                console.error("Error loading theme", e);
-            })
-            .finally(() => {
-                cmThemeSelect.disabled = false;
-            });
-    });
-
     return {
         tryCompileDebounced,
         doRunScript
     };
 }
 
+// With the help of webpack, we can get a list of all the example script files
+// and the ability to lazily load them on demand:
+const exampleScriptsImport = require.context("!raw-loader!../example-scripts/", false, /\.rhai$/, "lazy");
+let exampleScriptList = [];
+for (let key of exampleScriptsImport.keys()) {
+    const value = key;
+    if (key.startsWith("./")) {
+        key = key.substr(2);
+    }
+    const text = key;
+    exampleScriptList.push({ value, text });
+}
+Object.freeze(exampleScriptList);
+
+// Include all the CodeMirror themes but load lazily:
+const cmThemesImport = require.context("codemirror/theme/", false, /\.css$/, "lazy");
+let cmThemeList = [];
+for (let key of cmThemesImport.keys()) {
+    if (!key.startsWith("./") || !key.endsWith(".css")) {
+        continue;
+    }
+    key = key.substring(2, key.length - 4);
+    function addOpt(key, name) {
+        const value = name ? `${key}/${name}` : key;
+        const text = name || key;
+        cmThemeList.push({ value, text });
+    }
+    if (key === "solarized") {
+        addOpt(key, `${key} dark`);
+        addOpt(key, `${key} light`);
+    } else {
+        addOpt(key);
+    }
+}
+Object.freeze(cmThemeList);
+
 export default {
     data() {
-        return {};
+        return {
+            selectedExampleScript: "",
+            exampleScriptList,
+            exampleScriptChangePromise: null,
+            selectedCmTheme: "default",
+            cmThemeList,
+            cmThemeChangePromise: null,
+        };
     },
     methods: {
         codeChange(editor, changes) {
@@ -337,13 +301,63 @@ export default {
         requestRun() {
             this.$_r.doRunScript(this.$refs.editor.getEditor());
         },
+        /**
+         * @returns {CodeMirror.Editor}
+         */
+        getEditor() {
+            return this.$refs.editor.getEditor();
+        },
+    },
+    watch: {
+        selectedExampleScript(newVal, oldVal) {
+            if (!newVal) {
+                return;
+            }
+            const cm = this.getEditor();
+            this.$_r.tryCompileDebounced.cancel();
+            cm.setOption("readOnly", true);
+            this.exampleScriptChangePromise = exampleScriptsImport(this.selectedExampleScript)
+                .then(module => {
+                    cm.setValue(module.default);
+                })
+                .catch(e => {
+                    console.error("Error loading script", e);
+                })
+                .finally(() => {
+                    cm.setOption("readOnly", false);
+                    this.exampleScriptChangePromise = null;
+                });
+        },
+        selectedCmTheme(theme, oldVal) {
+            if (!theme) {
+                return;
+            }
+            const cm = this.getEditor();
+            if (theme === "default") {
+                cm.setOption("theme", "default");
+                return;
+            }
+            let themeFile = theme;
+            const slash = theme.indexOf("/");
+            if (slash !== -1) {
+                themeFile = theme.substring(0, slash);
+                theme = theme.substring(slash + 1);
+            }
+            this.cmThemeChangePromise = cmThemesImport(`./${themeFile}.css`)
+                .then(module => {
+                    cm.setOption("theme", theme);
+                })
+                .catch(e => {
+                    console.error("Error loading theme", e);
+                })
+                .finally(() => {
+                    this.cmThemeChangePromise = null;
+                });
+        }
     },
     mounted() {
-        /**
-         * @type {CodeMirror.Editor}
-         */
-        const cm = this.$refs.editor.getEditor();
-        const r = initEditor(cm);
+        const cm = this.getEditor();
+        const r = initEditor();
         r.tryCompileDebounced.trigger(cm);
         this.$_r = r;
         cm.setValue(initialCode);
