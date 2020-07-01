@@ -170,6 +170,10 @@ async function doRunScriptAsync(editor) {
 const runScriptOnWorkerCheckbox = document.getElementById("runScriptOnWorker");
 let isScriptRunning = false;
 function doRunScript(editor) {
+    if (isScriptRunning) {
+        console.log("Blocked run script request as another script is already running.");
+        return;
+    }
     isScriptRunning = true;
     if (runScriptOnWorkerCheckbox.checked) {
         doRunScriptAsync(editor).then(() => {
