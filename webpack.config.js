@@ -1,7 +1,12 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const webpack = require("webpack");
+const gitRevisionPlugin = new GitRevisionPlugin({
+  versionCommand: "describe --always --tags --dirty",
+});
 
 const dist = path.resolve(__dirname, "dist");
 
@@ -40,5 +45,11 @@ module.exports = {
     }),
 
     new VueLoaderPlugin(),
+
+    gitRevisionPlugin,
+
+    new webpack.DefinePlugin({
+      VERSION: JSON.stringify(gitRevisionPlugin.version()),
+    }),
   ],
 };

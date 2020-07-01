@@ -79,6 +79,10 @@
                 Ops:
                 <input type="text" :value="runningOpsDisplay" readonly style="width: 100px;" />
             </label>
+            <span style="font-size: 0.8em;">
+                <a href="https://github.com/alvinhochun/rhai-playground" target="_blank">rhai-playground</a>
+                {{ VERSION }}
+            </span>
         </header>
         <editor
             style="overflow: hidden;"
@@ -309,6 +313,9 @@ export default {
             } else {
                 return "-";
             }
+        },
+        VERSION() {
+            return VERSION;
         },
     },
     methods: {
