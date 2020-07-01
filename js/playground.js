@@ -274,10 +274,13 @@ function initEditor() {
             themeFile = theme.substring(0, slash);
             theme = theme.substring(slash + 1);
         }
+        cmThemeSelect.disabled = true;
         cmThemesImport(`./${themeFile}.css`).then(module => {
             editor.setOption("theme", theme);
         }).catch(e => {
             console.error("Error loading theme", e);
+        }).finally(() => {
+            cmThemeSelect.disabled = false;
         });
     });
 }
