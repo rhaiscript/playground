@@ -149,10 +149,13 @@ async function doRunScriptAsync(editor) {
         // FIXME: The auto-scroll code causes a lot of extra layout events,
         //        which drastically slows down if the script prints a lot of
         //        lines. Can it be made less bad?
-        const scroll = el.scrollTop === el.scrollHeight - el.clientHeight;
+        // There may be a 1px offset on certain scaling conditions so we give
+        // it a bit of leeway.
+        const scroll = el.scrollTop >= el.scrollHeight - el.clientHeight - 2;
         el.value += line + "\n";
         if (scroll) {
-            el.scrollTop = el.scrollHeight - el.clientHeight;
+            // This amount should be large enough.
+            el.scrollTop += 1000;
         }
     }
     runScriptButton.disabled = true;
