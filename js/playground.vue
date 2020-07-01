@@ -16,9 +16,6 @@
         grid-column-end: 3;
     }
 }
-#editorContainer {
-    overflow: hidden;
-}
 #result {
     width: 100%;
     height: 100%;
@@ -26,6 +23,9 @@
     margin: 0;
     resize: none;
 }
+</style>
+
+<style>
 .CodeMirror {
     border: 1px solid #ccc;
     height: 100% !important;
@@ -46,10 +46,9 @@
 <template>
     <div class="playgroundTop">
         <header class="header">
-            <button type="button" id="runScriptButton">
-                Run script (
-                <kbd>Ctrl</kbd>+
-                <kbd>Enter</kbd>)
+            <!--prettyhtml-preserve-whitespace-->
+            <button type="button" id="runScriptButton" @click="requestRun">
+                Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
             </button>
             <select id="exampleScriptSelect">
                 <option value>(example scripts...)</option>
@@ -65,7 +64,12 @@
                 Run script asynchronously on Web Worker
             </label>
         </header>
-        <div id="editorContainer" style="overflow: hidden;"></div>
+        <editor
+            style="overflow: hidden;"
+            ref="editor"
+            @change="codeChange"
+            @requestRun="requestRun"
+        ></editor>
         <div id="outputContainer">
             <textarea
                 readonly
@@ -80,21 +84,16 @@
 <script>
 import * as wasm from "../pkg/index.js";
 
+import Editor from "./components/editor.vue";
 import { runScript } from "./playground-runner";
 
 import CodeMirror from "codemirror";
-import "codemirror/lib/codemirror.css";
-import "codemirror/addon/comment/comment";
-import "codemirror/addon/display/rulers";
-import "codemirror/addon/edit/closebrackets";
-import "codemirror/addon/edit/matchbrackets";
-import "codemirror/addon/fold/brace-fold";
-import "codemirror/addon/fold/foldgutter";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/addon/search/match-highlighter";
-import "codemirror/addon/selection/active-line";
 
 wasm.init_codemirror_pass(CodeMirror.Pass);
+
+CodeMirror.defineMode("rhai", (cfg, mode) => {
+    return new wasm.RhaiMode(cfg.indentUnit);
+});
 
 const initialCode = `\
 fn run(a) {
@@ -104,15 +103,10 @@ fn run(a) {
 run(10);
 `;
 
-function initEditor() {
+function initEditor(editor) {
     // With the help of webpack, we can get a list of all the example script files
     // and the ability to lazily load them on demand:
-    const exampleScriptsImport = require.context(
-        "!raw-loader!../example-scripts/",
-        false,
-        /\.rhai$/,
-        "lazy"
-    );
+    const exampleScriptsImport = require.context("!raw-loader!../example-scripts/", false, /\.rhai$/, "lazy");
     const exampleScriptSelect = document.getElementById("exampleScriptSelect");
     for (let key of exampleScriptsImport.keys()) {
         const opt = document.createElement("option");
@@ -125,12 +119,7 @@ function initEditor() {
     }
 
     // Include all the CodeMirror themes but load lazily:
-    const cmThemesImport = require.context(
-        "codemirror/theme/",
-        false,
-        /\.css$/,
-        "lazy"
-    );
+    const cmThemesImport = require.context("codemirror/theme/", false, /\.css$/, "lazy");
     const cmThemeSelect = document.getElementById("cmThemeSelect");
     for (let key of cmThemesImport.keys()) {
         if (!key.startsWith("./") || !key.endsWith(".css")) {
@@ -150,10 +139,6 @@ function initEditor() {
             addOpt(key);
         }
     }
-
-    CodeMirror.defineMode("rhai", (cfg, mode) => {
-        return new wasm.RhaiMode(cfg.indentUnit);
-    });
 
     /**
      * @type CodeMirror.TextMarker?
@@ -178,8 +163,8 @@ function initEditor() {
                     { line: e.line - 1, ch: e.column },
                     {
                         className: "rhai-error",
-                        title: e.message
-                    }
+                        title: e.message,
+                    },
                 );
             }
         }
@@ -202,7 +187,7 @@ function initEditor() {
         },
         _fire(editor) {
             tryCompileScript(editor);
-        }
+        },
     };
 
     const runScriptButton = document.getElementById("runScriptButton");
@@ -221,7 +206,7 @@ function initEditor() {
                     },
                     s => {
                         resultEl.value += `[DEBUG] ${s}\n`;
-                    }
+                    },
                 );
                 resultEl.value += `\nScript returned: "${result}"`;
             } catch (ex) {
@@ -290,61 +275,6 @@ function initEditor() {
         }
     }
 
-    const editor = CodeMirror(document.getElementById("editorContainer"), {
-        value: initialCode,
-        mode: "rhai",
-        lineNumbers: true,
-        indentUnit: 4,
-        matchBrackets: true,
-        foldGutter: {
-            rangeFinder: CodeMirror.fold.brace
-        },
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-        styleActiveLine: true,
-        highlightSelectionMatches: {
-            minChars: 3,
-            showToken: true,
-            annotateScrollbar: true
-        },
-        rulers: [
-            {
-                column: 80,
-                color: "#ccc"
-            }
-        ],
-        autoCloseBrackets: {
-            pairs: `()[]{}''""`,
-            closeBefore: `)]}'":;,`,
-            triples: "",
-            explode: "()[]{}"
-        },
-        extraKeys: {
-            Tab: cm => {
-                // This function is a modification of `defaultTab` to insert soft
-                // tab instead of hard tab.
-                if (cm.somethingSelected()) {
-                    cm.indentSelection("add");
-                } else {
-                    cm.execCommand("insertSoftTab");
-                }
-            },
-            "Ctrl-Enter": cm => {
-                doRunScript(cm);
-            },
-            "Ctrl-/": "toggleComment"
-        }
-    });
-
-    editor.on("change", (editor, changes) => {
-        tryCompileDebounced.trigger(editor);
-    });
-
-    tryCompileDebounced.trigger(editor);
-
-    runScriptButton.addEventListener("click", ev => {
-        doRunScript(editor);
-    });
-
     exampleScriptSelect.addEventListener("change", ev => {
         if (!exampleScriptSelect.value) {
             return;
@@ -389,14 +319,36 @@ function initEditor() {
                 cmThemeSelect.disabled = false;
             });
     });
+
+    return {
+        tryCompileDebounced,
+        doRunScript
+    };
 }
 
 export default {
     data() {
         return {};
     },
+    methods: {
+        codeChange(editor, changes) {
+            this.$_r.tryCompileDebounced.trigger(editor);
+        },
+        requestRun() {
+            this.$_r.doRunScript(this.$refs.editor.getEditor());
+        },
+    },
     mounted() {
-        initEditor();
-    }
+        /**
+         * @type {CodeMirror.Editor}
+         */
+        const cm = this.$refs.editor.getEditor();
+        const r = initEditor(cm);
+        r.tryCompileDebounced.trigger(cm);
+        this.$_r = r;
+        cm.setValue(initialCode);
+        cm.focus();
+    },
+    components: { Editor },
 };
 </script>
