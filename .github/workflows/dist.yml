@@ -1,0 +1,50 @@
+name: Build dist
+
+on: [push]
+
+jobs:
+  build_dist:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: Install wasm-pack
+      run: cargo install wasm-pack
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm run build
+    - name: SSH setup
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        mkdir -p ~/.ssh
+        chmod 600 ~/.ssh
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
+    - name: Deploy
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no
+      run: |
+        GIT_TRACE=1 git clone --depth 1 git@github.com:alvinhochun/alvinhochun.github.io _deploy
+        cd _deploy
+        git config --local user.name github-actions[bot]
+        git config --local user.email 41898282+github-actions[bot]@users.noreply.github.com
+        rm -rf rhai-playground-unstable/
+        mv ../dist rhai-playground-unstable
+        git add rhai-playground-unstable/
+        git commit -m "rhai-playground-unstable: Deploy ${GITHUB_SHA::7}"
+        git --no-pager show --stat
+        git push
