@@ -1,3 +1,15 @@
+rhai-playground
+===
+
+This is an attempt to make a playground for the [Rhai scripting language][rhai]
+using WebAssembly.
+
+The `master` branch is automatically built and deployed [here][playground-unstable].
+
+[rhai]: https://github.com/jonathandturner/rhai
+[playground-unstable]: https://alvinhochun.github.io/rhai-playground-unstable/
+
+
 ## How to install
 
 ```sh
