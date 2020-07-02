@@ -1,15 +1,14 @@
 name: Build dist
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build_dist:
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [12.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -19,12 +18,17 @@ jobs:
         toolchain: stable
     - name: Install wasm-pack
       run: cargo install wasm-pack
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 12.x
     - run: npm install
     - run: npm run build
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: dist/
     - name: SSH setup
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -38,7 +42,7 @@ jobs:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no
       run: |
-        GIT_TRACE=1 git clone --depth 1 git@github.com:alvinhochun/alvinhochun.github.io _deploy
+        git clone --depth 1 git@github.com:alvinhochun/alvinhochun.github.io _deploy
         cd _deploy
         git config --local user.name github-actions[bot]
         git config --local user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -46,5 +50,4 @@ jobs:
         mv ../dist rhai-playground-unstable
         git add rhai-playground-unstable/
         git commit -m "rhai-playground-unstable: Deploy ${GITHUB_SHA::7}"
-        git --no-pager show --stat
         git push
