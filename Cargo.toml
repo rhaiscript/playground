@@ -27,6 +27,7 @@ opt-level = 's'
 rhai = { git = "https://github.com/jonathandturner/rhai.git", features = [ "only_i64", "no_optimize", "internals" ] }
 js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
+instant = { version = "0.1", features = ["wasm-bindgen"] }
 
 # The `wasm-bindgen` crate provides the bare minimum functionality needed
 # to interact with JavaScript.
