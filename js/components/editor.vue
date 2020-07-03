@@ -1,5 +1,5 @@
 <template>
-    <div></div>
+    <div style="overflow: hidden;"></div>
 </template>
 
 <script>

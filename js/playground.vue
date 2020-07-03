@@ -1,20 +1,10 @@
 <style scoped>
-.playgroundTop {
+.playgroundRoot {
     height: 100%;
     max-height: 100%;
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr 1fr;
-}
-@media screen and (min-width: 900px) {
-    .playgroundTop {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto 1fr;
-    }
-    .header {
-        grid-column-start: 1;
-        grid-column-end: 3;
-    }
+    grid-template-columns: 100vw;
+    grid-template-rows: auto minmax(0, 1fr);
 }
 .header {
     padding: 0.75rem;
@@ -24,8 +14,8 @@
     flex-direction: column;
 }
 .result {
-    box-sizing: border-box;
-    margin: 0;
+    border: 0;
+    margin: 4px 8px;
     resize: none;
     font-family: monospace;
     flex-grow: 1;
@@ -52,7 +42,7 @@
 </style>
 
 <template>
-    <div class="playgroundTop">
+    <div class="playgroundRoot">
         <header class="header">
             <b-field grouped group-multiline>
                 <b-field>
@@ -190,15 +180,19 @@
                 </b-field>
             </b-field>
         </header>
-        <editor
-            style="overflow: hidden;"
-            ref="editor"
-            @change="codeChange"
-            @requestRun="requestRun"
-        ></editor>
-        <div class="outputPanel">
-            <textarea ref="result" class="result" readonly autocomplete="off"></textarea>
-        </div>
+        <splittable-tabs @isSplittedChanged="cmRefresh" @activeTabChanged="activeTabChanged">
+            <tab-item label="Code" splittable>
+                <editor
+                    style="overflow: hidden; height: 100%;"
+                    ref="editor"
+                    @change="codeChange"
+                    @requestRun="requestRun"
+                ></editor>
+            </tab-item>
+            <tab-item label="Output" ref="outputTab" class="outputPanel">
+                <textarea ref="result" class="result" readonly autocomplete="off"></textarea>
+            </tab-item>
+        </splittable-tabs>
     </div>
 </template>
 
@@ -206,6 +200,8 @@
 import * as wasm from "../pkg/index.js";
 
 import Editor from "./components/editor.vue";
+import SplittableTabs from "./components/SplittableTabs.vue";
+import TabItem from "./components/TabItem.vue";
 import * as Runner from "./playground-runner";
 
 import CodeMirror from "codemirror";
@@ -431,6 +427,7 @@ export default {
             if (this.runDisabled) {
                 return;
             }
+            this.$refs.outputTab.makeTabActive();
             this.isScriptRunning = true;
             if (this.isRunScriptOnWorker) {
                 this.stopDisabled = false;
@@ -472,6 +469,14 @@ export default {
                     this.exampleScriptChangePromise = null;
                 });
         },
+        cmRefresh() {
+            this.$nextTick(() => this.getEditor().refresh());
+        },
+        activeTabChanged(newTab) {
+            if (newTab === 0) {
+                this.cmRefresh();
+            }
+        },
     },
     watch: {
         selectedCmTheme(theme, oldVal) {
@@ -506,9 +511,12 @@ export default {
         const r = initEditor();
         r.tryCompileDebounced.trigger(cm);
         this.$_r = r;
-        cm.setValue(initialCode);
-        cm.focus();
+        this.$nextTick(() => {
+            cm.refresh();
+            cm.setValue(initialCode);
+            cm.focus();
+        });
     },
-    components: { Editor },
+    components: { Editor, SplittableTabs, TabItem },
 };
 </script>
