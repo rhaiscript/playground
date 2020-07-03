@@ -35,3 +35,5 @@ self.onmessage = ev => {
         console.log("Unknown message received by worker:", ev.data);
     }
 };
+
+self.postMessage({ req: "_ready" });
