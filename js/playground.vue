@@ -69,7 +69,7 @@
                         <b-tooltip
                             position="is-bottom"
                             :label="(isScriptRunning ? 'Running' : 'Idle') + (runningOps ? ` / Ops: ${runningOpsDisplay}` : '')"
-                            :always="isScriptRunning && runningOps"
+                            :always="isScriptRunning && runningOps !== null"
                         >
                             <b-button
                                 type="is-danger"
