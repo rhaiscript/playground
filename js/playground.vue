@@ -4,28 +4,31 @@
     max-height: 100%;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
 }
 @media screen and (min-width: 900px) {
     .playgroundTop {
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto 1fr;
     }
     .header {
         grid-column-start: 1;
         grid-column-end: 3;
     }
-    .runHeader {
-        grid-column-start: 1;
-        grid-column-end: 3;
-    }
+}
+.header {
+    padding: 0.75rem;
+}
+.outputPanel {
+    display: flex;
+    flex-direction: column;
 }
 .result {
-    width: 100%;
-    height: 100%;
     box-sizing: border-box;
     margin: 0;
     resize: none;
+    font-family: monospace;
+    flex-grow: 1;
 }
 </style>
 
@@ -34,7 +37,8 @@
     border: 1px solid #ccc;
     height: 100% !important;
     box-sizing: border-box;
-    font-size: 11pt;
+    font-size: 0.95em;
+    line-height: initial;
 }
 .CodeMirror .rhai-error {
     text-decoration: underline wavy red;
@@ -50,39 +54,141 @@
 <template>
     <div class="playgroundTop">
         <header class="header">
-            <select v-model="selectedExampleScript" :disabled="exampleScriptChangePromise !== null">
-                <option value>(example scripts...)</option>
-                <option v-for="i in exampleScriptList" :key="i.value" :value="i.value">{{ i.text }}</option>
-            </select>
-            <label style="display: inline-block;">
-                Theme:
-                <select v-model="selectedCmTheme" :disabled="cmThemeChangePromise !== null">
-                    <option value="default">Default</option>
-                    <option v-for="i in cmThemeList" :key="i.value" :value="i.value">{{ i.text }}</option>
-                </select>
-            </label>
-            <label style="display: inline-block;">
-                <input type="checkbox" v-model="isRunScriptOnWorker" />
-                Run script asynchronously on Web Worker
-            </label>
-        </header>
-        <header class="runHeader">
-            <!--prettyhtml-preserve-whitespace-->
-            <button type="button" @click="requestRun" :disabled="runDisabled">
-                Run script (<kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
-            </button>
-            <button type="button" @click="stopScript" :disabled="stopDisabled">Stop</button>
-            <span v-show="!isScriptRunning">Idle</span>
-            <span v-show="isScriptRunning">Running...</span>
-            /
-            <label>
-                Ops:
-                <input type="text" :value="runningOpsDisplay" readonly style="width: 100px;" />
-            </label>
-            <span style="font-size: 0.8em;">
-                <a href="https://github.com/alvinhochun/rhai-playground" target="_blank">rhai-playground</a>
-                {{ VERSION }}
-            </span>
+            <b-field grouped group-multiline>
+                <b-field>
+                    <p class="control">
+                        <b-button
+                            type="is-success"
+                            native-type="button"
+                            icon-left="play"
+                            @click="requestRun"
+                            :disabled="runDisabled"
+                        >Run</b-button>
+                    </p>
+                    <p class="control" v-if="isRunScriptOnWorker">
+                        <b-tooltip
+                            position="is-bottom"
+                            :label="(isScriptRunning ? 'Running' : 'Idle') + (runningOps ? ` / Ops: ${runningOpsDisplay}` : '')"
+                            :always="isScriptRunning && runningOps"
+                        >
+                            <b-button
+                                type="is-danger"
+                                native-type="button"
+                                icon-left="stop"
+                                @click="stopScript"
+                                :disabled="stopDisabled"
+                            >Stop</b-button>
+                        </b-tooltip>
+                    </p>
+                </b-field>
+                <b-field style="margin-bottom: 0.75rem;">
+                    <p class="control">
+                        <b-dropdown
+                            aria-role="menu"
+                            :disabled="exampleScriptChangePromise !== null || isScriptRunning"
+                        >
+                            <button
+                                class="button"
+                                position="is-bottom-left"
+                                slot="trigger"
+                                role="button"
+                                type="button"
+                            >
+                                <span>Example Scripts</span>
+                                <b-icon icon="menu-down" />
+                            </button>
+                            <b-dropdown-item
+                                aria-role="menu-item"
+                                v-for="i in exampleScriptList"
+                                :key="i.value"
+                                @click.native.prevent="loadExampleScript(i.value)"
+                                href="#"
+                            >{{ i.text }}</b-dropdown-item>
+                        </b-dropdown>
+                    </p>
+                    <p class="control">
+                        <b-dropdown aria-role="menu">
+                            <b-button
+                                icon-left="cog"
+                                slot="trigger"
+                                role="button"
+                                native-type="button"
+                            >Config</b-button>
+
+                            <b-dropdown-item aria-role="menu-item" :focusable="false" custom>
+                                <b-field label="Theme">
+                                    <b-select
+                                        v-model="selectedCmTheme"
+                                        :disabled="cmThemeChangePromise !== null"
+                                    >
+                                        <option value="default">Default</option>
+                                        <option
+                                            v-for="i in cmThemeList"
+                                            :key="i.value"
+                                            :value="i.value"
+                                        >{{ i.text }}</option>
+                                    </b-select>
+                                </b-field>
+                                <div class="field">
+                                    <b-switch
+                                        v-model="isRunScriptOnWorker"
+                                        :disabled="isScriptRunning"
+                                    >
+                                        Run script using
+                                        <b>Web Worker</b>
+                                    </b-switch>
+                                </div>
+                            </b-dropdown-item>
+                        </b-dropdown>
+                    </p>
+                    <p class="control">
+                        <b-dropdown aria-role="menu">
+                            <b-button
+                                icon-left="help-circle"
+                                slot="trigger"
+                                role="button"
+                                native-type="button"
+                            ></b-button>
+
+                            <b-dropdown-item
+                                aria-role="menu-item"
+                                :focusable="false"
+                                custom
+                                paddingless
+                            >
+                                <div class="modal-card" style="width: 300px;">
+                                    <section class="modal-card-body">
+                                        <div class="content">
+                                            <h1>What is Rhai?</h1>
+                                            <p>
+                                                <a
+                                                    href="https://github.com/jonathandturner/rhai"
+                                                    target="_blank"
+                                                >Rhai</a> is an embedded scripting language and evaluation engine for Rust.
+                                            </p>
+                                            <h1>Hotkeys</h1>
+                                            <p>
+                                                You can run the script by pressing
+                                                <kbd>Ctrl</kbd> +
+                                                <kbd>Enter</kbd> when focused in the editor.
+                                            </p>
+                                        </div>
+                                    </section>
+                                    <footer class="modal-card-foot">
+                                        <span>
+                                            <a
+                                                href="https://github.com/alvinhochun/rhai-playground"
+                                                target="_blank"
+                                            >rhai-playground</a>
+                                            version: {{ VERSION }}
+                                        </span>
+                                    </footer>
+                                </div>
+                            </b-dropdown-item>
+                        </b-dropdown>
+                    </p>
+                </b-field>
+            </b-field>
         </header>
         <editor
             style="overflow: hidden;"
@@ -90,7 +196,7 @@
             @change="codeChange"
             @requestRun="requestRun"
         ></editor>
-        <div>
+        <div class="outputPanel">
             <textarea ref="result" class="result" readonly autocomplete="off"></textarea>
         </div>
     </div>
@@ -291,7 +397,6 @@ Object.freeze(cmThemeList);
 export default {
     data() {
         return {
-            selectedExampleScript: "",
             exampleScriptList,
             exampleScriptChangePromise: null,
             selectedCmTheme: "default",
@@ -351,16 +456,11 @@ export default {
         stopScript() {
             Runner.stopScript();
         },
-    },
-    watch: {
-        selectedExampleScript(newVal, oldVal) {
-            if (!newVal) {
-                return;
-            }
+        loadExampleScript(key) {
             const cm = this.getEditor();
             this.$_r.tryCompileDebounced.cancel();
             cm.setOption("readOnly", true);
-            this.exampleScriptChangePromise = exampleScriptsImport(this.selectedExampleScript)
+            this.exampleScriptChangePromise = exampleScriptsImport(key)
                 .then(module => {
                     cm.setValue(module.default);
                 })
@@ -372,6 +472,8 @@ export default {
                     this.exampleScriptChangePromise = null;
                 });
         },
+    },
+    watch: {
         selectedCmTheme(theme, oldVal) {
             if (!theme) {
                 return;
@@ -397,7 +499,7 @@ export default {
                 .finally(() => {
                     this.cmThemeChangePromise = null;
                 });
-        }
+        },
     },
     mounted() {
         const cm = this.getEditor();
