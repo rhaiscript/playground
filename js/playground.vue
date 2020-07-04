@@ -184,7 +184,7 @@
             </b-field>
         </header>
         <splittable-tabs @isSplittedChanged="cmRefresh" @activeTabChanged="activeTabChanged">
-            <tab-item label="Code" splittable>
+            <tab-item label="Code" ref="codeTab" splittable>
                 <editor
                     style="overflow: hidden; height: 100%;"
                     ref="editor"
@@ -466,6 +466,10 @@ export default {
             this.exampleScriptChangePromise = exampleScriptsImport(key)
                 .then(module => {
                     cm.setValue(module.default);
+                    this.$refs.codeTab.makeTabActive();
+                    this.$nextTick(() => {
+                        cm.focus();
+                    });
                 })
                 .catch(e => {
                     console.error("Error loading script", e);
