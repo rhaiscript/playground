@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "buefy": "^0.8.20",
-    "codemirror": "^5.54.0",
+    "codemirror": "^5.55.0",
     "css-loader": "^3.6.0",
     "file-loader": "^6.0.0",
     "style-loader": "^1.2.1",
