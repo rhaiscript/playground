@@ -1,9 +1,3 @@
-// FIXME: We could have used worker-loader but it currently breaks with WASM.
-//        workerize-loader has the issue fixed. We sould want to switch back
-//        to worker-loader once the issue is fixed.
-//        Blocked on: https://github.com/webpack-contrib/worker-loader/pull/175
-import MyWorker from "workerize-loader!./worker.js";
-
 let workerLoader = (function () {
     /**
      * @type Worker?
@@ -19,7 +13,7 @@ let workerLoader = (function () {
     function ensureWorker() {
         if (workerPromise === null) {
             workerPromise = new Promise((resolve, reject) => {
-                worker = new MyWorker();
+                worker = new Worker("./worker.js");
                 rejectWorkerLoad = reject;
                 worker.onerror = ev => {
                     workerPromise = null;

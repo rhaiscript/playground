@@ -50,7 +50,37 @@ if (crateVersion.rhai.version !== null) {
 
 const dist = path.resolve(__dirname, "dist");
 
-module.exports = {
+const worker = {
+  name: "worker",
+  mode: "production",
+  entry: {
+    worker: "./js/worker.js"
+  },
+  target: "webworker",
+  output: {
+    path: dist,
+    filename: "[name].js",
+    globalObject: "this",
+    chunkFilename: "worker.[id].js",
+    // webassemblyModuleFilename: "wasm.module.wasm",
+  },
+  devServer: {
+    contentBase: dist,
+    hot: false,
+  },
+  plugins: [
+    new WasmPackPlugin({
+      crateDirectory: __dirname,
+    }),
+  ],
+  optimization: {
+    usedExports: false,
+  },
+};
+
+const web = {
+  name: "app",
+  dependencies: ["worker"],
   mode: "production",
   entry: {
     index: "./js/index.js"
@@ -58,7 +88,7 @@ module.exports = {
   output: {
     path: dist,
     filename: "[name].js",
-    globalObject: "this",
+    // webassemblyModuleFilename: "wasm.module.wasm",
   },
   devServer: {
     contentBase: dist,
@@ -80,10 +110,6 @@ module.exports = {
       path.resolve(__dirname, "static")
     ]),
 
-    new WasmPackPlugin({
-      crateDirectory: __dirname,
-    }),
-
     new VueLoaderPlugin(),
 
     gitRevisionPlugin,
@@ -93,4 +119,9 @@ module.exports = {
       RHAI_VERSION: JSON.stringify(rhaiVersionString),
     }),
   ],
+  optimization: {
+    usedExports: false,
+  },
 };
+
+module.exports = [worker, web];
