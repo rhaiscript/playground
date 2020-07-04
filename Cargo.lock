@@ -134,8 +134,9 @@ dependencies = [
 
 [[package]]
 name = "rhai"
-version = "0.16.0"
-source = "git+https://github.com/jonathandturner/rhai.git#3b16fae455d4e4b75010fc8fec500a1800c924fd"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3db71264cdcd56f261f8d6282edcb2b61feaf2db411811e14522f24ab529deef"
 dependencies = [
  "instant",
  "num-traits",
