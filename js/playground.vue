@@ -72,7 +72,7 @@
                     </p>
                 </b-field>
                 <b-field style="margin-bottom: 0.75rem;">
-                    <p class="control">
+                    <p class="control" v-if="!$data._isEmbedded">
                         <b-dropdown
                             aria-role="menu"
                             :disabled="exampleScriptChangePromise !== null || isScriptRunning"
@@ -394,6 +394,16 @@ for (let key of cmThemesImport.keys()) {
 Object.freeze(cmThemeList);
 
 export default {
+    props: {
+        initialCode: {
+            type: String,
+            default: initialCode,
+        },
+        isEmbedded: {
+            type: Boolean,
+            default: false,
+        },
+    },
     data() {
         return {
             exampleScriptList,
@@ -405,6 +415,7 @@ export default {
             isScriptRunning: false,
             runningOps: null,
             stopDisabled: true,
+            _isEmbedded: this.isEmbedded,
         };
     },
     computed: {
@@ -523,7 +534,7 @@ export default {
         this.$_r = r;
         this.$nextTick(() => {
             cm.refresh();
-            cm.setValue(initialCode);
+            cm.setValue(this.initialCode);
             cm.focus();
         });
     },
