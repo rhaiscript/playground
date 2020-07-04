@@ -10,6 +10,69 @@ The `master` branch is automatically built and deployed [here][playground-unstab
 [playground-unstable]: https://alvinhochun.github.io/rhai-playground-unstable/
 
 
+Embedding the Rhai playground
+---
+
+It is still a work-in-progress, but it is possible to embed the playground for
+use on another web page.
+
+[View demo on CodePen](https://codepen.io/alvinhochun/pen/LYGQEaW)
+
+```html
+<style>
+iframe.rhaiPlayground {
+    width: 100%;
+    height: 400px;
+    border: 0;
+}
+</style>
+
+<pre><code class="language-rhai">fn hello_rhai(msg) {
+    print("Hello world! " + msg);
+}
+hello_rhai("Embed the Rhai Playground to run Rhai code!");
+</code></pre>
+
+<script>
+const ORIGIN = "https://alvinhochun.github.io";
+const PATH = "/rhai-playground-unstable/";
+let nextPlaygroundIdx = 0;
+function loadPlayground(el) {
+    const id = "" + nextPlaygroundIdx++;
+    const iframe = document.createElement("iframe");
+    iframe.style = el.style;
+    iframe.className = el.className;
+    iframe.classList.add("rhaiPlayground");
+    iframe.src = ORIGIN + PATH + "#embed-" + id;
+    el.replaceWith(iframe);
+    const code = el.innerText;
+    const onMessage = ev => {
+        if (
+            ev.data.from === "rhai-playground" &&
+            ev.data.req === "embed-loaded" &&
+            ev.data.id === id
+        ) {
+            iframe.contentWindow.postMessage(
+                {
+                    to: "rhai-playground",
+                    req: "embed-init",
+                    code,
+                },
+                ORIGIN,
+            );
+            // window.removeEventListener("message", onMessage);
+        }
+    }
+    window.addEventListener("message", onMessage);
+}
+
+document.querySelectorAll("code.language-rhai").forEach(el => {
+    loadPlayground(el);
+});
+</script>
+```
+
+
 ## How to install
 
 ```sh
