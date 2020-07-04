@@ -165,13 +165,16 @@
                                         </div>
                                     </section>
                                     <footer class="modal-card-foot">
-                                        <span>
-                                            <a
-                                                href="https://github.com/alvinhochun/rhai-playground"
-                                                target="_blank"
-                                            >rhai-playground</a>
-                                            version: {{ VERSION }}
-                                        </span>
+                                        <div>
+                                            <span>
+                                                <a
+                                                    href="https://github.com/alvinhochun/rhai-playground"
+                                                    target="_blank"
+                                                >rhai-playground</a>
+                                                version: {{ VERSION }}
+                                            </span><br>
+                                            <span>compiled with Rhai {{ RHAI_VERSION }}</span>
+                                        </div>
                                     </footer>
                                 </div>
                             </b-dropdown-item>
@@ -417,6 +420,9 @@ export default {
         },
         VERSION() {
             return VERSION;
+        },
+        RHAI_VERSION() {
+            return RHAI_VERSION;
         },
     },
     methods: {
