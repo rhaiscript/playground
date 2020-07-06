@@ -101,12 +101,12 @@ let runScriptPromiseReject = null;
  * @param {(Number) => void} updateOps
  * @returns {Promise<void>}
  */
-async function runScript(script, appendOutput, updateOps) {
+function runScript(script, appendOutput, updateOps) {
     if (runScriptMessageListener) {
         return Promise.reject("Another script is running.");
     }
-    // const worker = await ensureWorker();
     return new Promise((resolve, reject) => {
+        appendOutput(`Waiting for Web Worker to finish loading...`);
         workerLoader.ensureWorker().then(worker => {
             appendOutput(`Running script at ${new Date().toISOString()}\n`);
             worker.addEventListener("message", runScriptMessageListener = ev => {

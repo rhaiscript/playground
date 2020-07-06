@@ -36,4 +36,6 @@ self.onmessage = ev => {
     }
 };
 
-self.postMessage({ req: "_ready" });
+wasmImport.then(() => {
+    self.postMessage({ req: "_ready" });
+});
