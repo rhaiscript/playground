@@ -1,17 +1,5 @@
-import Vue from "vue";
-import { Button, Dropdown, Field, Icon, Select, Switch, Tooltip } from "buefy";
-
-import "buefy/dist/buefy.css";
-
-Vue.use(Button);
-Vue.use(Dropdown);
-Vue.use(Field);
-Vue.use(Icon);
-Vue.use(Select);
-Vue.use(Switch);
-Vue.use(Tooltip);
-
-const playgroundImport = import("./playground.vue").catch(console.error);
+const initImport = import("./init.js");
+const buefyCssImport = import("buefy/dist/buefy.css");
 
 let embedWaitPromise;
 if (window.location.hash.startsWith("#embed-") && window.parent !== window) {
@@ -37,22 +25,7 @@ if (window.location.hash.startsWith("#embed-") && window.parent !== window) {
     embedWaitPromise = Promise.resolve(null);
 }
 
-Promise.all([playgroundImport, embedWaitPromise]).then(([module, embedInit]) => {
+Promise.all([initImport, embedWaitPromise, buefyCssImport]).then(([m, embedInit, _buefyCss]) => {
     document.getElementById("loading").remove();
-
-    const playground = module.default;
-    const initialCode = embedInit ? embedInit.code : undefined;
-    const isEmbedded = embedInit ? true : false;
-
-    new Vue({
-        el: "#topContainer",
-        render(h) {
-            return h(playground, {
-                props: {
-                    initialCode,
-                    isEmbedded,
-                },
-            });
-        },
-    })
-})
+    m.default("#topContainer", embedInit,)
+});
