@@ -279,24 +279,31 @@ function initEditor() {
 
     function doRunScriptSync(editor, resultEl) {
         let script = editor.getValue();
-        resultEl.value = `Running script at ${new Date().toISOString()}\n\n`;
+        function appendOutput(line) {
+            let v = resultEl.value + line + "\n";
+            if (v.length > 10000) {
+                v = v.substr(v.length - 10000);
+            }
+            resultEl.value = v;
+        }
+        appendOutput(`Running script at ${new Date().toISOString()}\n`);
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 try {
                     let result = wasm.run_script(
                         script,
                         s => {
-                            resultEl.value += `[PRINT] ${s}\n`;
+                            appendOutput(`[PRINT] ${s}`);
                         },
                         s => {
-                            resultEl.value += `[DEBUG] ${s}\n`;
+                            appendOutput(`[DEBUG] ${s}`);
                         },
                     );
-                    resultEl.value += `\nScript returned: "${result}"`;
+                    appendOutput(`\nScript returned: "${result}"`);
                 } catch (ex) {
-                    resultEl.value += `\nEXCEPTION: "${ex}"`;
+                    appendOutput(`\nEXCEPTION: "${ex}"`);
                 }
-                resultEl.value += `\nFinished at ${new Date().toISOString()}`;
+                appendOutput(`\nFinished at ${new Date().toISOString()}`);
                 // Scroll to bottom
                 resultEl.scrollTop = resultEl.scrollHeight - resultEl.clientHeight;
                 resolve();
@@ -322,7 +329,11 @@ function initEditor() {
             // it a bit of leeway.
             const scroll =
                 el.scrollTop >= el.scrollHeight - el.clientHeight - 2;
-            el.value += line + "\n";
+            let v = el.value + line + "\n";
+            if (v.length > 10000) {
+                v = v.substr(v.length - 10000);
+            }
+            el.value = v;
             if (scroll) {
                 // This amount should be large enough.
                 el.scrollTop += 1000;
