@@ -19,7 +19,7 @@ pub struct State {
 }
 
 thread_local! {
-    static ELECTRIC_INPUT: RegExp = RegExp::new("^\\s*[}\\])]$", "").into();
+    static ELECTRIC_INPUT: RegExp = RegExp::new("^\\s*[}\\])]$", "");
     static LINE_COMMENT: JsValue = JsValue::from_str("//");
     static CODEMIRROR_PASS: RefCell<JsValue> = RefCell::new(JsValue::null());
 }
@@ -232,6 +232,7 @@ fn indent(mode: &RhaiMode, state: &State, text_after: String) -> Option<u32> {
             .trim_start()
             .starts_with(['}', ']', ')'].as_ref())
     };
+    #[allow(clippy::collapsible_if)]
     if state.unclosed_bracket_count > 0 {
         if should_dedent() {
             Some(state.line_indent)

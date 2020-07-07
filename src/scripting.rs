@@ -53,7 +53,7 @@ thread_local! {
 
 pub fn compile_ast(script: &str) -> Result<String, JsValue> {
     ENGINE_FOR_AST_ONLY.with(|engine| {
-        let script_ast = engine.compile(&script).map_err(parse_error_to_js)?;
+        let _script_ast = engine.compile(&script).map_err(parse_error_to_js)?;
         console::log_1(&JsValue::from_str("Script compiled to AST!"));
         Ok("".into())
     })

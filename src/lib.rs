@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-use web_sys::console;
 
 mod cm_rhai_mode;
 mod codemirror;
@@ -12,8 +11,6 @@ pub fn run_script(
     debug_callback: js_sys::Function,
     progress_callback: Option<js_sys::Function>,
 ) -> Result<String, JsValue> {
-    console_error_panic_hook::set_once();
-
     Ok(scripting::run_script(
         &script,
         move |s| {
