@@ -19,7 +19,7 @@ const crateVersion = {
 try {
   const cargoLock = fs.readFileSync(path.resolve(__dirname, "Cargo.lock"), { encoding: "utf8" });
   // An awful RegExp to get the version of the `rhai` crate...
-  const matches = /\[\[package\]\]\nname = "rhai"\nversion = "([0-9\.]+)"(?:\nsource = "([^"\n]+)"\n)?/.exec(cargoLock);
+  const matches = /\[\[package\]\]\r?\nname = "rhai"\r?\nversion = "([0-9\.]+)"(?:\r?\nsource = "([^"\r\n]+)"\r?\n)?/.exec(cargoLock);
   if (matches) {
     crateVersion.rhai.version = matches[1];
     if (typeof matches[2] !== "undefined") {
