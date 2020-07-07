@@ -35,7 +35,7 @@ pub fn run_script(
             } else if duration_msec >= 100 {
                 progress_callback(ops);
                 *last_instant = new_instant;
-                if duration_msec >= 500 {
+                if duration_msec >= 500 && interval_value > 1 {
                     interval.replace(interval_value / 10);
                 }
             }
