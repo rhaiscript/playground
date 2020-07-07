@@ -52,6 +52,7 @@
                             native-type="button"
                             icon-left="play"
                             @click="requestRun"
+                            :loading="isScriptRunning"
                             :disabled="runDisabled"
                         >Run</b-button>
                     </p>
