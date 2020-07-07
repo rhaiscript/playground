@@ -67,6 +67,8 @@ let workerLoader = (function () {
     function terminateWorker() {
         if (isWorkerLoaded()) {
             terminateLoadedWorker();
+            // Reload the worker:
+            ensureWorker();
         } else if (isWorkerLoading()) {
             terminateLoadingWorker();
         }
@@ -138,5 +140,8 @@ function stopScript() {
         runScriptPromiseReject = null;
     }
 }
+
+// Pre-load the worker:
+workerLoader.ensureWorker();
 
 export { runScript, stopScript };
