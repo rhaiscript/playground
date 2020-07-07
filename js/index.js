@@ -1,3 +1,5 @@
+import { wasmLoadPromise } from "./wasm_loader.js";
+
 const initImport = import("./init.js");
 const buefyCssImport = import("buefy/dist/buefy.css");
 
@@ -25,7 +27,7 @@ if (window.location.hash.startsWith("#embed-") && window.parent !== window) {
     embedWaitPromise = Promise.resolve(null);
 }
 
-Promise.all([initImport, embedWaitPromise, buefyCssImport]).then(([m, embedInit, _buefyCss]) => {
+Promise.all([initImport, embedWaitPromise, wasmLoadPromise, buefyCssImport]).then(([m, embedInit, _wasm, _buefyCss]) => {
     document.getElementById("loading").remove();
-    m.default("#topContainer", embedInit,)
+    m.default("#topContainer", embedInit)
 });

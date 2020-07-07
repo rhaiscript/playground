@@ -200,7 +200,7 @@
 </template>
 
 <script>
-import * as wasm from "../pkg/index.js";
+import { wasm, wasmLoadPromise } from "./wasm_loader.js";
 
 import Editor from "./components/editor.vue";
 import SplittableTabs from "./components/SplittableTabs.vue";
@@ -209,10 +209,12 @@ import * as Runner from "./playground-runner";
 
 import CodeMirror from "codemirror";
 
-wasm.init_codemirror_pass(CodeMirror.Pass);
+wasmLoadPromise.then(() => {
+    wasm.init_codemirror_pass(CodeMirror.Pass);
 
-CodeMirror.defineMode("rhai", (cfg, mode) => {
-    return new wasm.RhaiMode(cfg.indentUnit);
+    CodeMirror.defineMode("rhai", (cfg, mode) => {
+        return new wasm.RhaiMode(cfg.indentUnit);
+    });
 });
 
 const initialCode = `\

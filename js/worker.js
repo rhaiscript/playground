@@ -1,4 +1,4 @@
-const wasmImport = import("../pkg/index.js").catch(console.error);
+import { wasmImport } from "./wasm_loader.js";
 
 async function runScript(script) {
     const wasm = await wasmImport;
