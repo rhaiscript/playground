@@ -279,6 +279,7 @@ function initEditor() {
 
     function doRunScriptSync(editor, resultEl) {
         let script = editor.getValue();
+        resultEl.value = "";
         function appendOutput(line) {
             let v = resultEl.value + line + "\n";
             if (v.length > 10000) {
@@ -321,22 +322,41 @@ function initEditor() {
         }
         let script = editor.getValue();
         el.value = "";
+        let appendBuffer = "";
+        let appendBufferTimeout = null;
+        let lastUpdateTime = null;
         function appendOutput(line) {
-            // FIXME: The auto-scroll code causes a lot of extra layout events,
-            //        which drastically slows down if the script prints a lot of
-            //        lines. Can it be made less bad?
-            // There may be a 1px offset on certain scaling conditions so we give
-            // it a bit of leeway.
-            const scroll =
-                el.scrollTop >= el.scrollHeight - el.clientHeight - 2;
-            let v = el.value + line + "\n";
-            if (v.length > 10000) {
-                v = v.substr(v.length - 10000);
-            }
-            el.value = v;
-            if (scroll) {
-                // This amount should be large enough.
-                el.scrollTop += 1000;
+            appendBuffer += line + "\n";
+            if (appendBufferTimeout === null) {
+                // This limits the frequency of appending and scrolling of the
+                // output to the screen refresh rate in order to reduce the
+                // number of superfluous re-layouts in case the script prints
+                // a lot of lines within a very short moment of time.
+                const animFn = ts => {
+                    let elapsed = ts - lastUpdateTime;
+                    if (elapsed < 32) {
+                        // There isn't really much point updating the output
+                        // more than 30 times per seconds, so we limit it.
+                        appendBufferTimeout = requestAnimationFrame(animFn);
+                        return;
+                    }
+                    lastUpdateTime = ts;
+                    const scroll = el.scrollTop >= el.scrollHeight - el.clientHeight - 2;
+                    let v = el.value;
+                    const totalLen = v.length + appendBuffer.length;
+                    if (totalLen > 10000) {
+                        v = v.substr(totalLen - 10000);
+                    }
+                    v += appendBuffer;
+                    el.value = v;
+                    if (scroll) {
+                        // Scroll to bottom
+                        el.scrollTop = el.scrollHeight - el.clientHeight;
+                    }
+                    appendBuffer = "";
+                    appendBufferTimeout = null;
+                };
+                appendBufferTimeout = requestAnimationFrame(animFn);
             }
         }
         try {
