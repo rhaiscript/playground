@@ -59,8 +59,8 @@
                     <p class="control" v-if="isRunScriptOnWorker">
                         <b-tooltip
                             position="is-bottom"
-                            :label="(isScriptRunning ? 'Running' : 'Idle') + (runningOps ? ` / Ops: ${runningOpsDisplay}` : '')"
-                            :always="isScriptRunning && runningOps !== null"
+                            :label="(isScriptRunning ? (runningOps !== null ? 'Running' : 'Loading...') : 'Idle') + (runningOps ? ` / Ops: ${runningOpsDisplay}` : '')"
+                            :always="isScriptRunning && runningOps !== null && runningOps > 0"
                         >
                             <b-button
                                 type="is-danger"
