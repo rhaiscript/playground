@@ -107,7 +107,7 @@
                             >Config</b-button>
 
                             <b-dropdown-item aria-role="menu-item" :focusable="false" custom>
-                                <b-field label="Theme">
+                                <b-field label="Editor Theme">
                                     <b-select
                                         v-model="selectedCmTheme"
                                         :disabled="cmThemeChangePromise !== null"
@@ -560,6 +560,7 @@ export default {
             this.cmThemeChangePromise = cmThemesImport(`./${themeFile}.css`)
                 .then(module => {
                     cm.setOption("theme", theme);
+                    this.$refs.astView.getEditor().setOption("theme", theme);
                 })
                 .catch(e => {
                     console.error("Error loading theme", e);
