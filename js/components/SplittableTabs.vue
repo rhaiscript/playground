@@ -20,7 +20,7 @@
 }
 .tabsContainer.splitted {
     grid-template-columns: 50% 50%;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
 }
 .tabsContainer.splitted > .tabs {
     grid-column: 2;

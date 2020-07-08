@@ -196,6 +196,9 @@
             <tab-item label="Output" ref="outputTab" class="outputPanel">
                 <textarea ref="result" class="result" readonly autocomplete="off"></textarea>
             </tab-item>
+            <tab-item label="AST">
+                <ast-view style="overflow: hidden; height: 100%;" ref="astView" :ast-text="astText"></ast-view>
+            </tab-item>
         </splittable-tabs>
     </div>
 </template>
@@ -203,6 +206,7 @@
 <script>
 import { wasm, wasmLoadPromise } from "./wasm_loader.js";
 
+import AstView from "./components/AstView.vue";
 import Editor from "./components/editor.vue";
 import SplittableTabs from "./components/SplittableTabs.vue";
 import TabItem from "./components/TabItem.vue";
@@ -226,7 +230,7 @@ fn run(a) {
 run(10);
 `;
 
-function initEditor() {
+function initEditor(vm) {
     /**
      * @type CodeMirror.TextMarker?
      */
@@ -241,7 +245,8 @@ function initEditor() {
             lastErrorMarker = null;
         }
         try {
-            wasm.compile_script(editor.getValue());
+            const astText = wasm.compile_script(editor.getValue());
+            return astText;
         } catch (e) {
             console.log("Parse error:", e);
             if (typeof e.message === "string" && e.line && e.column) {
@@ -273,7 +278,7 @@ function initEditor() {
             );
         },
         _fire(editor) {
-            tryCompileScript(editor);
+            vm.astText = tryCompileScript(editor) || "";
         },
     };
 
@@ -449,6 +454,7 @@ export default {
             isScriptRunning: false,
             runningOps: null,
             stopDisabled: true,
+            astText: "",
             _isEmbedded: this.isEmbedded,
         };
     },
@@ -530,6 +536,8 @@ export default {
         activeTabChanged(newTab) {
             if (newTab === 0) {
                 this.cmRefresh();
+            } else if (newTab === 2) {
+                this.$nextTick(() => this.$refs.astView.getEditor().refresh());
             }
         },
     },
@@ -563,7 +571,7 @@ export default {
     },
     mounted() {
         const cm = this.getEditor();
-        const r = initEditor();
+        const r = initEditor(this);
         r.tryCompileDebounced.trigger(cm);
         this.$_r = r;
         this.$nextTick(() => {
@@ -572,6 +580,6 @@ export default {
             cm.focus();
         });
     },
-    components: { Editor, SplittableTabs, TabItem },
+    components: { AstView, Editor, SplittableTabs, TabItem },
 };
 </script>

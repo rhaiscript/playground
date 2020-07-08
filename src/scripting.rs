@@ -53,9 +53,18 @@ thread_local! {
 
 pub fn compile_ast(script: &str) -> Result<String, JsValue> {
     ENGINE_FOR_AST_ONLY.with(|engine| {
-        let _script_ast = engine.compile(&script).map_err(parse_error_to_js)?;
+        let script_ast = engine.compile(&script).map_err(parse_error_to_js)?;
         console::log_1(&JsValue::from_str("Script compiled to AST!"));
-        Ok("".into())
+        #[allow(deprecated)]
+        let statements = script_ast.statements();
+        #[allow(deprecated)]
+        let module = script_ast.lib();
+        let mut s = format!("//This is the Debug representation of the AST.\n\n// Statements:\n{:#?}\n\n// Modules (script-defined functions):\n", statements);
+        for f in module.iter_script_fn() {
+            use std::fmt::Write;
+            writeln!(&mut s, "{:#?}", f.as_ref()).unwrap();
+        }
+        Ok(s)
     })
 }
 
