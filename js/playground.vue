@@ -111,6 +111,7 @@
                                     <b-select
                                         v-model="selectedCmTheme"
                                         :disabled="cmThemeChangePromise !== null"
+                                        expanded
                                     >
                                         <option value="default">Default</option>
                                         <option
@@ -118,6 +119,14 @@
                                             :key="i.value"
                                             :value="i.value"
                                         >{{ i.text }}</option>
+                                    </b-select>
+                                </b-field>
+                                <b-field label="Layout">
+                                    <b-select v-model="splitLayout" expanded>
+                                        <option value="auto">Auto</option>
+                                        <option value="h">Horizontal Split</option>
+                                        <option value="v">Vertical Split</option>
+                                        <option value="tabbed">Tabbed</option>
                                     </b-select>
                                 </b-field>
                                 <div class="field">
@@ -184,7 +193,11 @@
                 </b-field>
             </b-field>
         </header>
-        <splittable-tabs @isSplittedChanged="cmRefresh" @activeTabChanged="activeTabChanged">
+        <splittable-tabs
+            :layout="splitLayout"
+            @layoutChanged="cmRefresh()"
+            @activeTabChanged="activeTabChanged"
+        >
             <tab-item label="Code" ref="codeTab" splittable>
                 <editor
                     style="overflow: hidden; height: 100%;"
@@ -455,6 +468,7 @@ export default {
             runningOps: null,
             stopDisabled: true,
             astText: "",
+            splitLayout: "auto",
             _isEmbedded: this.isEmbedded,
         };
     },

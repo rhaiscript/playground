@@ -18,6 +18,7 @@
     grid-column: 1;
     grid-row: 2;
 }
+/* Horizontal split */
 .tabsContainer.splitted {
     grid-template-columns: 50% 50%;
     grid-template-rows: auto minmax(0, 1fr);
@@ -34,10 +35,27 @@
     grid-column: 1;
     grid-row: 1 / span 2;
 }
+/* Vertical split */
+.tabsContainer.splitted.vertical {
+    grid-template-columns: 100%;
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.tabsContainer.splitted.vertical > .tabs {
+    grid-column: 1;
+    grid-row: 2;
+}
+.tabsContainer.splitted.vertical > .tabItem {
+    grid-column: 1;
+    grid-row: 3;
+}
+.tabsContainer.splitted.vertical > .tabItem.splittable {
+    grid-column: 1;
+    grid-row: 1;
+}
 </style>
 
 <template>
-    <div class="tabsContainer" :class="{ splitted: isSplitted }">
+    <div class="tabsContainer" :class="{ splitted: isSplitted, vertical: isVerticalSplit }">
         <nav class="tabs">
             <ul>
                 <li
@@ -60,12 +78,33 @@
 import TabItem from "./TabItem.vue";
 
 export default {
+    props: {
+        layout: {
+            type: String,
+            required: true,
+            validator(val) {
+                return ['auto', 'h', 'v', 'tabbed'].includes(val);
+            },
+        },
+    },
     data() {
         return {
-            isSplitted: false,
+            _autoIsSplitted: false,
             tabItems: [],
             activeTab: -1,
         };
+    },
+    computed: {
+        isSplitted() {
+            if (this.layout === "auto") {
+                return this.$data._autoIsSplitted;
+            } else {
+                return this.layout === "h" || this.layout === "v";
+            }
+        },
+        isVerticalSplit() {
+            return this.layout === "v";
+        },
     },
     watch: {
         tabItems(newVal) {
@@ -88,7 +127,6 @@ export default {
                     tab.isSplitted = newVal;
                 }
             }
-            this.$emit("isSplittedChanged", newVal);
             if (newVal) {
                 if (this.activeTab >= 0 && this.tabItems[this.activeTab].isSplitted) {
                     // Store last active tab to revert to when unsplitting:
@@ -128,12 +166,17 @@ export default {
     created() {
         const matchMedia = window.matchMedia("(min-width: 900px)");
         matchMedia.addListener(this._matchMediaListener = () => {
-            this.isSplitted = matchMedia.matches;
+            this.$data._autoIsSplitted = matchMedia.matches;
         });
         this._matchMedia = matchMedia;
+        this.$watch(function () {
+            return this.isSplitted + this.isVerticalSplit;
+        }, function () {
+            this.$emit("layoutChanged");
+        });
     },
     mounted() {
-        this.isSplitted = this._matchMedia.matches
+        this.$data._autoIsSplitted = this._matchMedia.matches
         this.refreshSlots();
     },
     destroyed() {
