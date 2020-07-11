@@ -71,6 +71,15 @@
                             >Stop</b-button>
                         </b-tooltip>
                     </p>
+                    <p class="control">
+                        <b-button
+                            v-if="isRunScriptOnWorker"
+                            type="is-primary"
+                            native-type="button"
+                            @click="addModuleDemo"
+                            :disabled="runDisabled"
+                        >Add as module "test"</b-button>
+                    </p>
                 </b-field>
                 <b-field style="margin-bottom: 0.75rem;">
                     <p class="control" v-if="!$data._isEmbedded">
@@ -402,10 +411,18 @@ function initEditor(vm) {
         }
         isScriptRunning = false;
     }
+    async function addModule(name, editor) {
+        try {
+            await Runner.addModule(name, editor.getValue());
+        } catch (ex) {
+            console.error("Error adding module", ex);
+        }
+    }
 
     return {
         tryCompileDebounced,
         doRunScript,
+        addModule,
     };
 }
 
@@ -514,6 +531,12 @@ export default {
             );
             this.stopDisabled = true;
             this.isScriptRunning = false;
+        },
+        addModuleDemo() {
+            if (this.runDisabled) {
+                return;
+            }
+            this.$_r.addModule("test", this.getEditor());
         },
         /**
          * @returns {CodeMirror.Editor}

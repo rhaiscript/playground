@@ -131,6 +131,37 @@ function runScript(script, appendOutput, updateOps) {
     });
 }
 
+let addModuleMessageListener = null;
+let addModulePromiseReject = null;
+
+function addModule(name, script) {
+    if (addModuleMessageListener) {
+        return Promise.reject("Another module is being added.");
+    }
+    return new Promise((resolve, reject) => {
+        workerLoader.ensureWorker().catch(e => {
+            reject("Cannot load Worker: " + e);
+        }).then(worker => {
+            worker.addEventListener("message", addModuleMessageListener = ev => {
+                if (ev.data.req === "addModule/output") {
+                } else if (ev.data.req === "addModule/end") {
+                    if (ev.data.err) {
+                        console.error("Module add error", ev.data.err);
+                    } else {
+                        console.log("Module added", name);
+                    }
+                    worker.removeEventListener("message", addModuleMessageListener);
+                    addModuleMessageListener = null;
+                    addModulePromiseReject = null;
+                    resolve();
+                }
+            })
+            addModulePromiseReject = reject;
+            worker.postMessage({ req: "addModule", name, script });
+        });
+    });
+}
+
 function stopScript() {
     workerLoader.terminateWorker();
     if (runScriptPromiseReject) {
@@ -138,6 +169,11 @@ function stopScript() {
         runScriptMessageListener = null;
         runScriptPromiseReject = null;
     }
+    if (addModulePromiseReject) {
+        runScriptPromiseReject("Add module stopped.");
+        addModuleMessageListener = null;
+        addModulePromiseReject = null;
+    }
 }
 
-export { runScript, stopScript };
+export { runScript, stopScript, addModule };

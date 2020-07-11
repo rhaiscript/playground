@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 
 mod cm_rhai_mode;
 mod codemirror;
+mod playground;
 mod scripting;
 
 #[wasm_bindgen]
