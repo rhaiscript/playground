@@ -16,6 +16,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
+        target: wasm32-unknown-unknown
     - name: Check Cargo.lock is up-to-date with Cargo.toml and check build
       run: cargo check --target wasm32-unknown-unknown --locked
     - name: Install wasm-pack
