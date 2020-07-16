@@ -24,7 +24,7 @@ opt-level = 's'
 #default = ["wee_alloc"]
 
 [dependencies]
-rhai = { version = "0.16", features = [ "only_i64", "no_optimize", "internals" ] }
+rhai = { version = "0.17", features = [ "only_i64", "no_optimize", "internals" ] }
 js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
