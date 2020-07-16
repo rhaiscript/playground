@@ -16,8 +16,8 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: Check Cargo.lock is up-to-date with Cargo.toml
-      run: cargo update
+    - name: Check Cargo.lock is up-to-date with Cargo.toml and check build
+      run: cargo check --target wasm32-unknown-unknown --locked
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
     - name: Use Node.js 12.x
