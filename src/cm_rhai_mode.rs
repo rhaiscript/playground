@@ -91,11 +91,64 @@ struct StreamAdapter {
 
 impl rhai::InputStream for StreamAdapter {
     fn get_next(&mut self) -> Option<char> {
-        self.stream.next()
+        let first = self.stream.next();
+        if first.is_falsy() {
+            return None;
+        }
+        assert_eq!(first.length(), 1);
+        let first_code_unit = first.char_code_at(0) as u16;
+        if let Some(Ok(c)) = std::char::decode_utf16(std::iter::once(first_code_unit)).next() {
+            Some(c)
+        } else {
+            // The first value is likely an unpared surrogate, so we get one
+            // more UTF-16 unit to attempt to make a proper Unicode scalar.
+            let second = self.stream.next();
+            if second.is_falsy() {
+                return Some(std::char::REPLACEMENT_CHARACTER);
+            }
+            assert_eq!(second.length(), 1);
+            let second_code_unit = second.char_code_at(0) as u16;
+            if let Some(Ok(c)) =
+                std::char::decode_utf16([first_code_unit, second_code_unit].iter().copied()).next()
+            {
+                Some(c)
+            } else {
+                // Turns out to not be a proper surrogate pair, so back up one
+                // unit for it to be decoded separately.
+                self.stream.back_up(1);
+                Some(std::char::REPLACEMENT_CHARACTER)
+            }
+        }
     }
 
     fn peek_next(&mut self) -> Option<char> {
-        self.stream.peek()
+        let first = self.stream.peek();
+        if first.is_falsy() {
+            return None;
+        }
+        assert_eq!(first.length(), 1);
+        let first_code_unit = first.char_code_at(0) as u16;
+        if let Some(Ok(c)) = std::char::decode_utf16(std::iter::once(first_code_unit)).next() {
+            Some(c)
+        } else {
+            // The first value is likely an unpared surrogate, so we get one more
+            // value to attempt to make a proper Unicode scalar value.
+            self.stream.next();
+            let second = self.stream.peek();
+            if second.is_falsy() {
+                return Some(std::char::REPLACEMENT_CHARACTER);
+            }
+            self.stream.back_up(1);
+            assert_eq!(second.length(), 1);
+            let second_code_unit = second.char_code_at(0) as u16;
+            if let Some(Ok(c)) =
+                std::char::decode_utf16([first_code_unit, second_code_unit].iter().copied()).next()
+            {
+                Some(c)
+            } else {
+                Some(std::char::REPLACEMENT_CHARACTER)
+            }
+        }
     }
 }
 

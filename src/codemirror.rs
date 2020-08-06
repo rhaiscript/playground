@@ -1,4 +1,4 @@
-use js_sys::{Array, RegExp};
+use js_sys::{Array, JsString, RegExp};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "codemirror")]
@@ -15,28 +15,28 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     #[must_use]
-    pub fn peek(this: &StringStream) -> Option<char>;
+    pub fn peek(this: &StringStream) -> JsString;
 
     #[wasm_bindgen(method)]
-    pub fn next(this: &StringStream) -> Option<char>;
+    pub fn next(this: &StringStream) -> JsString;
 
-    #[wasm_bindgen(method, js_name = eat)]
-    pub fn eat_char(this: &StringStream, m: char) -> bool;
+    // #[wasm_bindgen(method, js_name = eat)]
+    // pub fn eat_char(this: &StringStream, m: char) -> bool;
 
     #[wasm_bindgen(method, js_name = eat)]
     pub fn eat_regexp(this: &StringStream, m: &RegExp) -> bool;
 
-    #[wasm_bindgen(method, js_name = eat)]
-    pub fn eat(this: &StringStream, m: &dyn Fn(char) -> bool) -> bool;
+    // #[wasm_bindgen(method, js_name = eat)]
+    // pub fn eat(this: &StringStream, m: &dyn Fn(char) -> bool) -> bool;
 
-    #[wasm_bindgen(method, js_name = eatWhile)]
-    pub fn eat_while_char(this: &StringStream, m: char) -> bool;
+    // #[wasm_bindgen(method, js_name = eatWhile)]
+    // pub fn eat_while_char(this: &StringStream, m: char) -> bool;
 
     #[wasm_bindgen(method, js_name = eatWhile)]
     pub fn eat_while_regexp(this: &StringStream, m: &RegExp) -> bool;
 
-    #[wasm_bindgen(method, js_name = eatWhile)]
-    pub fn eat_while(this: &StringStream, m: &dyn Fn(char) -> bool) -> bool;
+    // #[wasm_bindgen(method, js_name = eatWhile)]
+    // pub fn eat_while(this: &StringStream, m: &dyn Fn(char) -> bool) -> bool;
 
     #[wasm_bindgen(method, js_name = eatSpace)]
     pub fn eat_space(this: &StringStream) -> bool;
