@@ -16,6 +16,8 @@ pub struct State {
     unclosed_bracket_count: i32,
     line_indent: u32,
     is_defining_identifier: bool,
+    /// Buffered character, if any. (For use by `StreamAdapter`.)
+    buf: Option<char>,
 }
 
 thread_local! {
@@ -47,6 +49,7 @@ impl RhaiMode {
             unclosed_bracket_count: 0,
             line_indent: 0,
             is_defining_identifier: false,
+            buf: None,
         }
     }
 
@@ -86,11 +89,21 @@ impl RhaiMode {
 }
 
 struct StreamAdapter {
+    /// Buffered character, if any.
+    buf: Option<char>,
     stream: codemirror::StringStream,
 }
 
 impl rhai::InputStream for StreamAdapter {
+    fn unread(&mut self, ch: char) {
+        self.buf = Some(ch);
+    }
+
     fn get_next(&mut self) -> Option<char> {
+        if let Some(ch) = self.buf.take() {
+            return Some(ch);
+        }
+
         let first = self.stream.next();
         if first.is_falsy() {
             return None;
@@ -122,6 +135,10 @@ impl rhai::InputStream for StreamAdapter {
     }
 
     fn peek_next(&mut self) -> Option<char> {
+        if let Some(ch) = self.buf {
+            return Some(ch);
+        }
+
         let first = self.stream.peek();
         if first.is_falsy() {
             return None;
@@ -158,12 +175,17 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         state.unclosed_bracket_count = 0;
     }
 
+    let mut stream_adapter = StreamAdapter {
+        stream,
+        buf: state.buf,
+    };
     let (next_token, _) = rhai::get_next_token(
-        &mut StreamAdapter { stream },
+        &mut stream_adapter,
         &mut state.token_state,
         &mut rhai::Position::default(),
     )
     .ok_or_else(|| "Failed to get next token")?;
+    state.buf = stream_adapter.buf;
     match &next_token {
         rhai::Token::LeftBrace
         | rhai::Token::LeftBracket
