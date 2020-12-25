@@ -278,6 +278,13 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         rhai::Token::Import => "keyword",
         rhai::Token::Export => "keyword",
         rhai::Token::As => "keyword",
+        rhai::Token::DoubleArrow => "operator",
+        rhai::Token::Underscore => "operator",
+        rhai::Token::Switch => "keyword",
+        rhai::Token::Do => "keyword",
+        rhai::Token::Until => "keyword",
+        rhai::Token::Try => "keyword",
+        rhai::Token::Catch => "keyword",
         rhai::Token::Comment(_) => "comment",
         rhai::Token::LexError(e) => {
             console::log_1(&JsValue::from_str(&format!("LexError: {}", e)));
