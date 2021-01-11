@@ -1,16 +1,18 @@
-rhai-playground
+Rhai Playground
 ===
 
 This is an attempt to make a playground for the [Rhai scripting language][rhai]
 using WebAssembly.
 
-The `master` branch is automatically built and deployed [here][playground-unstable].
+The `master` branch is automatically built and deployed [here][playground-dev].
+A known-good build is published on [https://rhaiscript.github.io/playground/stable/][playground-stable].
 
-[rhai]: https://github.com/jonathandturner/rhai
-[playground-unstable]: https://alvinhochun.github.io/rhai-playground-unstable/
+[rhai]: https://github.com/rhaiscript/rhai
+[playground-stable]: https://rhaiscript.github.io/playground/stable/
+[playground-dev]: https://rhaiscript.github.io/playground/dev/
 
 
-Embedding the Rhai playground
+Embedding the Rhai Playground (work in progress)
 ---
 
 It is still a work-in-progress, but it is possible to embed the playground for
@@ -34,8 +36,8 @@ hello_rhai("Embed the Rhai Playground to run Rhai code!");
 </code></pre>
 
 <script>
-const ORIGIN = "https://alvinhochun.github.io";
-const PATH = "/rhai-playground-unstable/";
+const ORIGIN = "https://rhaiscript.github.io";
+const PATH = "/playground/stable/";
 let nextPlaygroundIdx = 0;
 function loadPlayground(el) {
     const id = "" + nextPlaygroundIdx++;
