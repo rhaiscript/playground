@@ -32,25 +32,14 @@ jobs:
       with:
         name: dist
         path: dist/
-    - name: SSH setup
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-        mkdir -p ~/.ssh
-        chmod 600 ~/.ssh
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add - <<< "${{ secrets.DEPLOY_PRIVATE_KEY }}"
     - name: Deploy
-      env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no
       run: |
-        git clone --depth 1 git@github.com:alvinhochun/alvinhochun.github.io _deploy
+        git worktree add _deploy gh-pages
         cd _deploy
         git config --local user.name github-actions[bot]
         git config --local user.email 41898282+github-actions[bot]@users.noreply.github.com
-        rm -rf rhai-playground-unstable/
-        mv ../dist rhai-playground-unstable
-        git add rhai-playground-unstable/
-        git commit -m "rhai-playground-unstable: Deploy ${GITHUB_SHA::7}"
+        rm -rf dev/
+        mv ../dist dev
+        git add dev/
+        git commit -m "Action \`dist\`: Deploy ${GITHUB_SHA::7} as dev"
         git push
