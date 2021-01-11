@@ -34,6 +34,7 @@ jobs:
         path: dist/
     - name: Deploy
       run: |
+        git fetch --depth=1 origin gh-pages
         git worktree add _deploy gh-pages
         cd _deploy
         git config --local user.name github-actions[bot]
