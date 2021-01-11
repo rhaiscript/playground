@@ -162,9 +162,9 @@
                                             <h1>What is Rhai?</h1>
                                             <p>
                                                 <a
-                                                    href="https://github.com/jonathandturner/rhai"
+                                                    href="https://github.com/rhaiscript/rhai"
                                                     target="_blank"
-                                                >Rhai</a> is an embedded scripting language and evaluation engine for Rust.
+                                                >Rhai</a> is an embedded scripting language and evaluation engine for Rust that gives a safe and easy way to add scripting to any application.
                                             </p>
                                             <h1>Hotkeys</h1>
                                             <p>
@@ -178,9 +178,9 @@
                                         <div>
                                             <span>
                                                 <a
-                                                    href="https://github.com/alvinhochun/rhai-playground"
+                                                    href="https://github.com/rhaiscript/playground"
                                                     target="_blank"
-                                                >rhai-playground</a>
+                                                >Rhai Playground</a>
                                                 version: {{ VERSION }}
                                             </span><br>
                                             <span>compiled with Rhai {{ RHAI_VERSION }}</span>
