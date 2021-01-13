@@ -126,9 +126,8 @@ dependencies = [
 
 [[package]]
 name = "rhai"
-version = "0.19.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "706ff541c1e876aec6386c7338176b1bba719c224cddc9454a8e308cb75c3e3b"
+version = "0.19.10"
+source = "git+https://github.com/rhaiscript/rhai.git?branch=master#bbd83ba201d19bdfc4cc68e79b138ef8cf806baf"
 dependencies = [
  "instant",
  "rhai_codegen",
@@ -138,8 +137,7 @@ dependencies = [
 [[package]]
 name = "rhai_codegen"
 version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e4bdc189235834008dccd5619ec2efa8fb5feebf38930a57b1daf9211c6b164"
+source = "git+https://github.com/rhaiscript/rhai.git?branch=master#bbd83ba201d19bdfc4cc68e79b138ef8cf806baf"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.8",
