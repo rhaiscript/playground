@@ -95,7 +95,7 @@ struct StreamAdapter {
 }
 
 impl rhai::InputStream for StreamAdapter {
-    fn unread(&mut self, ch: char) {
+    fn unget(&mut self, ch: char) {
         self.buf = Some(ch);
     }
 
