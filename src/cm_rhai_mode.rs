@@ -213,6 +213,7 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         }
         rhai::Token::CharConstant(_) => "string-2",
         rhai::Token::StringConstant(_) => "string",
+        rhai::Token::InterpolatedString(_) => "string",
         rhai::Token::LeftBrace => "bracket",
         rhai::Token::RightBrace => "bracket",
         rhai::Token::LeftParen => "bracket",
