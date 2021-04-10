@@ -12,11 +12,11 @@ fn new_mat(x, y) {
 
 fn mat_gen(n) {
     let m = new_mat(n, n);
-    let tmp = 1.0 / n.to_float() / n.to_float();
+    let tmp = 1.0 / n / n;
 
     for i in range(0, n) {
         for j in range(0, n) {
-            m[i][j] = tmp * (i.to_float() - j.to_float()) * (i.to_float() + j.to_float());
+            m[i][j] = tmp * (i - j) * (i + j);
         }
     }
 	

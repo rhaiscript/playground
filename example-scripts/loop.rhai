@@ -10,3 +10,5 @@ loop {
 
 	if x <= 0 { break; }
 }
+
+export x as foo;

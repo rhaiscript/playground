@@ -4,6 +4,6 @@ fn bob() {
     return 3;
 }
 
-print("bob() should be 3:");
+let result = bob();
 
-print(bob());
+print(`bob() should be 3: ${result}`);

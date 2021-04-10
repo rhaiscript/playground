@@ -7,10 +7,8 @@ fn addme(a, b) {
     a + b;              // notice that the last value is returned even if terminated by a semicolon
 }
 
-print("addme(a, 4) should be 46:");
+let result = addme(a, 4);
 
-print(addme(a, 4));
+print(!addme(a, 4) should be 46: ${result}``);
 
-print("a should still be 3:");
-
-print(a);               // should print 3 - 'a' is never changed
+print(`a should still be 3: ${a}`);     // should print 3 - 'a' is never changed

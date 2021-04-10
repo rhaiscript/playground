@@ -34,4 +34,13 @@ made using multi-line literal
 
 print(s);
 
+// Interpolation
+let s = `This is interpolation ${
+            let x = `within ${let y = "yet another level \
+                                       of interpolation!"; y} interpolation`;
+            x
+} within literal string.`;
+
+print(s);
+
 print(">>> END <<<");
