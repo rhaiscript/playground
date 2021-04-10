@@ -1,6 +1,6 @@
 const MAX = 1_000_000;
 
-print("Iterating an array with " + MAX + " items...");
+print(`Iterating an array with ${MAX} items...`);
 
 print("Ready... Go!");
 
@@ -18,5 +18,5 @@ for i in list {
     sum += i;
 }
 
-print("Sum = " + sum);
-print("Finished. Run time = " + now.elapsed + " seconds.");
+print(`Sum = ${sum}`);
+print(`Finished. Run time = ${now.elapsed} seconds.`);

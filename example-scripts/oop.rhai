@@ -7,7 +7,7 @@ let last_value = ();
 let obj1 = #{
     _data: 42,                                  // data field
     get_data: || this._data,                    // property getter
-    action: || print("Data=" + this._data),     // method
+    action: || print(`Data=${this._data}`),     // method
     update: |x| {                               // property setter
         this._data = x;
         last_value = this._data;                // capture 'last_value'
@@ -38,4 +38,4 @@ if obj2.get_data() > 0 {                        // property access
     obj2.update(42);                            // call method
 }
 
-print("Should be 84: " + last_value);
+print(`Should be 84: ${last_value}`);

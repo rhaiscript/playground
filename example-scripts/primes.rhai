@@ -25,8 +25,8 @@ for p in range(2, MAX_NUMBER_TO_CHECK) {
     }
 }
 
-print("Total " + total_primes_found + " primes <= " + MAX_NUMBER_TO_CHECK);
-print("Run time = " + now.elapsed + " seconds.");
+print(`Total ${total_primes_found} primes <= ${MAX_NUMBER_TO_CHECK}`);
+print(`Run time = ${now.elapsed} seconds.`);
 
 if total_primes_found != 78_498 {
     print("The answer is WRONG! Should be 78,498!");

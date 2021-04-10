@@ -68,4 +68,4 @@ for i in range(0, SIZE) {
 }
 */
 
-print("Finished. Run time = " + now.elapsed + " seconds.");
+print(`Finished. Run time = ${now.elapsed} seconds.`);

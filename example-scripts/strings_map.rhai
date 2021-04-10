@@ -75,7 +75,7 @@ let keys = [];
 for animal in animals {
   for adjective in adjectives {
     for adverb in adverbs {
-      keys.push(adverb + " " + adjective + " " + animal)
+      keys.push(`${adverb} ${adjective} ${animal}`)
     }
   }
 }
@@ -99,5 +99,5 @@ for key in keys {
   map.remove(key);
 }
 
-print("Sum = " + sum);
-print("Finished. Run time = " + now.elapsed + " seconds.");
+print(`Sum = ${sum}`);
+print(`Finished. Run time = ${now.elapsed} seconds.`);
