@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[73],{55:function(n,s,t){"use strict";t.r(s),s.default='// This script defines a function and calls it\n\nfn bob() {\n    return 3;\n}\n\nprint("bob() should be 3:");\n\nprint(bob());\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[73],{55:function(n,s,t){"use strict";t.r(s),s.default="// This script defines a function and calls it\n\nfn bob() {\n    return 3;\n}\n\nlet result = bob();\n\nprint(`bob() should be 3: ${result}`);\n"}}]);

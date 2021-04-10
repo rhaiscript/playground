@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[79],{61:function(t,n,p){"use strict";p.r(n),n.default='import "loop";\n\nprint("Module test!");\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[79],{61:function(o,t,s){"use strict";s.r(t),t.default='import "loop" as x;\n\nprint(`Module test! foo = ${x::foo}`);\n'}}]);
