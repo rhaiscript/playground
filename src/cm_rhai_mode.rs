@@ -18,6 +18,8 @@ pub struct State {
     is_defining_identifier: bool,
     /// Buffered character, if any. (For use by `StreamAdapter`.)
     buf: Option<char>,
+    /// Interpolated string brace counting stack
+    interpolated_str_brace_stack: Vec<u8>,
 }
 
 thread_local! {
@@ -50,6 +52,7 @@ impl RhaiMode {
             line_indent: 0,
             is_defining_identifier: false,
             buf: None,
+            interpolated_str_brace_stack: vec![],
         }
     }
 
@@ -213,9 +216,26 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         }
         rhai::Token::CharConstant(_) => "string-2",
         rhai::Token::StringConstant(_) => "string",
-        rhai::Token::InterpolatedString(_) => "string",
-        rhai::Token::LeftBrace => "bracket",
-        rhai::Token::RightBrace => "bracket",
+        rhai::Token::InterpolatedString(_) => {
+            state.interpolated_str_brace_stack.push(0);
+            "string"
+        }
+        rhai::Token::LeftBrace => {
+            if let Some(brace_counting) = state.interpolated_str_brace_stack.last_mut() {
+                *brace_counting += 1;
+            }
+            "bracket"
+        }
+        rhai::Token::RightBrace => {
+            if let Some(brace_counting) = state.interpolated_str_brace_stack.last_mut() {
+                *brace_counting -= 1;
+                if *brace_counting == 0 {
+                    state.interpolated_str_brace_stack.pop();
+                    state.token_state.is_within_text_terminated_by = Some('`');
+                }
+            }
+            "bracket"
+        }
         rhai::Token::LeftParen => "bracket",
         rhai::Token::RightParen => "bracket",
         rhai::Token::LeftBracket => "bracket",
