@@ -170,7 +170,7 @@ dependencies = [
 [[package]]
 name = "rhai"
 version = "0.19.16"
-source = "git+https://github.com/rhaiscript/rhai.git?branch=master#b658ca0b4bec658e54a5631c1ee0e7179000af9d"
+source = "git+https://github.com/rhaiscript/rhai.git?branch=master#8389033789d8695fe4f59fc656bee98b6eac06b2"
 dependencies = [
  "ahash",
  "instant",
@@ -183,7 +183,7 @@ dependencies = [
 [[package]]
 name = "rhai_codegen"
 version = "0.3.4"
-source = "git+https://github.com/rhaiscript/rhai.git?branch=master#b658ca0b4bec658e54a5631c1ee0e7179000af9d"
+source = "git+https://github.com/rhaiscript/rhai.git?branch=master#8389033789d8695fe4f59fc656bee98b6eac06b2"
 dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
