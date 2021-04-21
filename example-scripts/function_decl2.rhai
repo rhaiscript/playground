@@ -9,6 +9,6 @@ fn addme(a, b) {
 
 let result = addme(a, 4);
 
-print(!addme(a, 4) should be 46: ${result}``);
+print(`addme(a, 4) should be 46: ${result}`);
 
 print(`a should still be 3: ${a}`);     // should print 3 - 'a' is never changed

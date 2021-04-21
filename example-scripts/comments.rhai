@@ -8,4 +8,4 @@ let /* I am a spy in a variable declaration! */ x = 5;
 
 /* look /* at /* that, /* multi-line */ comments */ can be */ nested */
 
-/* surrounded by */ this_is_not_a_comment = true // comments
+/* surrounded by */ let this_is_not_a_comment = true // comments
