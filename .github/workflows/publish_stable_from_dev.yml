@@ -1,0 +1,22 @@
+name: Publish `stable` build from `dev` build
+
+on: [workflow_dispatch]
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish dev as stable
+      run: |
+        if [[ $GITHUB_REF != "refs/heads/gh-pages" ]]; then echo "::error::This workflow can only be used on the branch 'gh-pages'"; exit 1; fi
+        git config --local user.name github-actions[bot]
+        git config --local user.email 41898282+github-actions[bot]@users.noreply.github.com
+        rm -rf stable/
+        cp -r dev stable
+        git add stable/
+        DIST_SHA=$(<stable/COMMITHASH)
+        git commit -m "Action: Publish ${DIST_SHA::7} as stable"
+        git push
