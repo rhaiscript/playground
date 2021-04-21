@@ -1,0 +1,15 @@
+name: Publish `stable` build from `dev` build
+
+on: [workflow_dispatch]
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish dev as stable
+      run: |
+        if [[ $GITHUB_REF != "refs/head/gh-pages" ]]; then echo "::error::This workflow can only be used on the branch 'gh-pages'"; exit 1; fi
+        echo "::error::This workflow file is a placeholder. Please use the file on the branch 'gh-pages'"
