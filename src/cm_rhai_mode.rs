@@ -255,6 +255,8 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         rhai::Token::DoubleColon => "operator",
         rhai::Token::Comma => "operator",
         rhai::Token::Period => "operator",
+        rhai::Token::ExclusiveRange => "operator",
+        rhai::Token::InclusiveRange => "operator",
         rhai::Token::MapStart => "bracket",
         rhai::Token::Equals => "operator",
         rhai::Token::True => "builtin",
