@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[77],{59:function(n,t,i){"use strict";i.r(t),t.default="// This script runs an infinite loop, ending it with a break statement\n\nlet x = 10;\n\n// simulate do..while using loop\nloop {\n    print(x);\n\n    x -= 1;\n\n\tif x <= 0 { break; }\n}\n\nexport x as foo;\n"}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[77],{57:function(n,s,t){"use strict";t.r(s),s.default="// This script defines a function and calls it\n\nfn bob() {\n    return 3;\n}\n\nlet result = bob();\n\nprint(`bob() should be 3: ${result}`);\n"}}]);
