@@ -8,9 +8,11 @@ let now = timestamp();
 
 let list = [];
 
-for i in range(0, MAX) {
+for i in 0..MAX {
     list.push(i);
 }
+
+print(`Time = ${now.elapsed} seconds...`);
 
 let sum = 0;
 
@@ -19,4 +21,4 @@ for i in list {
 }
 
 print(`Sum = ${sum}`);
-print(`Finished. Run time = ${now.elapsed} seconds.`);
+print(`Finished. Total run time = ${now.elapsed} seconds.`);

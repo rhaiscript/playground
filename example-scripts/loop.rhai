@@ -8,7 +8,7 @@ loop {
 
     x -= 1;
 
-	if x <= 0 { break; }
+    if x <= 0 { break; }
 }
 
 export x as foo;
