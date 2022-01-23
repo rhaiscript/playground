@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[85],{65:function(o,t,s){"use strict";s.r(t),t.default='import "loop" as x;\n\nprint(`Module test! foo = ${x::foo}`);\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[85],{65:function(s,t,o){"use strict";o.r(t),t.default='// This script imports an external script as a module.\n\nimport "loop" as x;\n\nprint(`Module test! foo = ${x::foo}`);\n'}}]);

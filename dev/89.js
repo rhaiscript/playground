@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[89],{69:function(n,t,s){"use strict";s.r(t),t.default='print("The result should be 230:");\n\nlet x = (12 + 34) * 5;\n\nprint(x);\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[89],{69:function(n,s,e){"use strict";e.r(s),s.default='// This script runs a complex expression.\n\nprint("The result should be 230:");\n\nlet x = (12 + 34) * 5;\n\nprint(x);\n'}}]);
