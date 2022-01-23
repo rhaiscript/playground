@@ -1,7 +1,9 @@
+// This script runs an if expression.
+
 let a = 42;
 let b = 123;
 
-let x = if a <= b {         // if-expression
+let x = if a <= b {         // <- if-expression
     b - a
 } else {
     a - b

@@ -1,3 +1,5 @@
+// This script tests object maps and strings.
+
 print("Ready... Go!");
 
 let now = timestamp();

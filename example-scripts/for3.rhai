@@ -1,3 +1,5 @@
+// This script runs for-loops with closures.
+
 const MAX = 100;
 const CHECK = ((MAX - 1) ** 2) * MAX;
 
@@ -9,6 +11,7 @@ print(`Creating ${MAX} closures...`);
 
 let list = [];
 
+// Loop over range
 for i in 0..MAX {
     list.push(|| i ** 2);
 }
@@ -18,6 +21,7 @@ print(`Summing ${MAX} closures...`);
 
 let sum = 0;
 
+// Loop over array
 for f in list {
     sum += f.call();
 }

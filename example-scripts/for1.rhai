@@ -1,7 +1,8 @@
-// This script runs for-loops
+// This script runs for-loops.
 
 let arr = [1, true, 123.456, "hello", 3, 42];
 
+// Loop over array with counter
 for (a, i) in arr {
     for (b, j) in ['x', 42, (), 123, 99, 0.5] {
         if b > 100 { continue; }

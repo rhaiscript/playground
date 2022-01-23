@@ -3,9 +3,9 @@
 ///
 /// # Parameters
 ///
-/// `x` - `i64`  
-/// `y` - `string`  
-/// `z` - `bool`
+/// * `x` - `i64`
+/// * `y` - `string`
+/// * `z` - `bool`
 ///
 /// # Notes
 ///
@@ -13,6 +13,13 @@
 ///
 /// An example is the `rhai-doc` app.
 ///
+/// # Example
+///
+/// ```rhai
+/// let x = foo(42, "hello", true);
+///
+/// print(x);     // prints 47
+/// ```
 fn foo(x, y, z) {
    print(`hello, world! ${if z { x + y.len() } else { x } }`);
 }
