@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[79],{61:function(o,t,s){"use strict";s.r(t),t.default='import "loop" as x;\n\nprint(`Module test! foo = ${x::foo}`);\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[79],{59:function(n,e,s){"use strict";s.r(e),e.default="// This script defines a function with many parameters.\n// \n\nconst KEY = 38;\n\nfn f(a, b, c, d, e, f) {\n    let x = global::KEY;        // <- access global module\n    a - b * c - d * e - f + x\n}\n\nlet result = f(100, 5, 2, 9, 6, 32);\n\nprint(`result should be 42: ${result}`);\n"}}]);

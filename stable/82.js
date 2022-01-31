@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[82],{64:function(n,t,s){"use strict";s.r(t),t.default='print("The result should be 182:");\n\nlet x = 12 + 34 * 5;\n\nprint(x);\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[82],{62:function(n,s,e){"use strict";e.r(s),s.default="// This script runs an if expression.\n\nlet a = 42;\nlet b = 123;\n\nlet x = if a <= b {         // <- if-expression\n    b - a\n} else {\n    a - b\n} * 10;\n\nprint(`x should be 810: ${x}`);\n"}}]);

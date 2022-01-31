@@ -1,1 +1,1 @@
-(this.webpackJsonp=this.webpackJsonp||[]).push([[83],{65:function(n,t,s){"use strict";s.r(t),t.default='print("The result should be 230:");\n\nlet x = (12 + 34) * 5;\n\nprint(x);\n'}}]);
+(this.webpackJsonp=this.webpackJsonp||[]).push([[83],{63:function(n,i,t){"use strict";t.r(i),i.default="// This script runs an infinite loop, ending it with a break statement.\n\nlet x = 10;\n\n// simulate do..while using loop\nloop {\n    print(x);\n\n    x -= 1;\n\n    if x <= 0 { break; }\n}\n\nexport x as foo;\n"}}]);
