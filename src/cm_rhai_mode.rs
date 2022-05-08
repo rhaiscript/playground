@@ -240,6 +240,7 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         rhai::Token::RightParen => "bracket",
         rhai::Token::LeftBracket => "bracket",
         rhai::Token::RightBracket => "bracket",
+        rhai::Token::Unit => "keyword",
         rhai::Token::Plus => "operator",
         rhai::Token::UnaryPlus => "operator",
         rhai::Token::Minus => "operator",
@@ -316,6 +317,11 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         rhai::Token::Reserved(_) => "keyword",
         rhai::Token::Custom(_) => "keyword",
         rhai::Token::EOF => return Ok(None),
+        token @ _ => {
+            // ???
+            console::log_1(&JsValue::from_str(&format!("Unhandled token {:?}", token)));
+            "error"
+        }
     };
     match &next_token {
         rhai::Token::Fn
