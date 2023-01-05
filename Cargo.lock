@@ -96,8 +96,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c05aeb6a22b8f62540c194aac980f2115af067bfe15a0734d7277a768d396b31"
 dependencies = [
  "cfg-if 1.0.0",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -213,6 +215,7 @@ checksum = "4ff176e72a35d975ea0759b1bed69e30ad5cf47580b2e5d00449e8623b5a37dc"
 dependencies = [
  "ahash",
  "bitflags",
+ "getrandom",
  "instant",
  "num-traits",
  "rhai_codegen",
@@ -451,7 +454,6 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "futures",
- "instant",
  "js-sys",
  "rhai",
  "serde",
