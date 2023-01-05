@@ -1,4 +1,4 @@
-// This script runs a switch statement in a for-loop.
+//! This script runs a switch statement in a for-loop.
 
 let arr = [42, 123.456, "hello", true, "hey", 'x', 999, 1, 2, 3, 4];
 
