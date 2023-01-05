@@ -12,14 +12,15 @@ pub fn run_script(
 ) -> Result<String, String> {
     let mut engine = {
         let mut engine = rhai::Engine::new();
-        engine.disable_symbol("eval");
-        engine.on_print(move |s| print_callback(s));
-        engine.on_debug(move |s, src, pos| {
-            debug_callback(&src.map_or_else(
-                || format!("<script>:[{}] {}", pos, s),
-                |src| format!("{}:[{}] {}", src, pos, s),
-            ))
-        });
+        engine
+            .disable_symbol("eval")
+            .on_print(move |s| print_callback(s))
+            .on_debug(move |s, src, pos| {
+                debug_callback(&src.map_or_else(
+                    || format!("<script>:[{}] {}", pos, s),
+                    |src| format!("{}:[{}] {}", src, pos, s),
+                ))
+            });
         engine
     };
     let script_ast = engine.compile(&script).map_err(|e| e.to_string())?;
@@ -50,7 +51,11 @@ pub fn run_script(
 }
 
 thread_local! {
-    static ENGINE_FOR_AST_ONLY: rhai::Engine = rhai::Engine::new();
+    static ENGINE_FOR_AST_ONLY: rhai::Engine = {
+        let mut engine = rhai::Engine::new();
+        engine.set_optimization_level(rhai::OptimizationLevel::None);
+        engine
+    };
 }
 
 pub fn compile_ast(script: &str) -> Result<String, JsValue> {
