@@ -162,7 +162,7 @@
                                             <h1>What is Rhai?</h1>
                                             <p>
                                                 <a
-                                                    href="https://github.com/rhaiscript/rhai"
+                                                    href="https://rhai.rs"
                                                     target="_blank"
                                                 >Rhai</a> is an embedded scripting language and evaluation engine for Rust that gives a safe and easy way to add scripting to any application.
                                             </p>
