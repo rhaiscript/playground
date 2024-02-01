@@ -186,8 +186,7 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
         &mut stream_adapter,
         &mut state.token_state,
         &mut rhai::Position::default(),
-    )
-    .ok_or_else(|| "Failed to get next token")?;
+    );
     state.buf = stream_adapter.buf;
     match &next_token {
         rhai::Token::LeftBrace

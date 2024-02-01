@@ -91,6 +91,9 @@ npm start
 ## How to build in release mode
 
 ```sh
+# Use the Open SSL legacy provider if using Node 17 and above.
+#export NODE_OPTIONS=--openssl-legacy-provider
+
 # Builds the project and places it into the `dist` folder.
 npm run build
 ```
