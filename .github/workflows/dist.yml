@@ -21,12 +21,12 @@ jobs:
       run: cargo check --target wasm32-unknown-unknown --locked
     - name: Install wasm-pack
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-    - name: Use Node.js 12.x
+    - name: Use Node.js 17.x
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 17.x
     - run: npm install
-    - run: npm run build
+    - run: NODE_OPTIONS=--openssl-legacy-provider npm run build
     - name: Upload build artifact
       uses: actions/upload-artifact@v2
       with:
