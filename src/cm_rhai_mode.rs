@@ -230,7 +230,7 @@ fn token(stream: codemirror::StringStream, state: &mut State) -> Result<Option<S
                 *brace_counting -= 1;
                 if *brace_counting == 0 {
                     state.interpolated_str_brace_stack.pop();
-                    state.token_state.is_within_text_terminated_by = Some('`');
+                    state.token_state.is_within_text_terminated_by = Some("`".into());
                 }
             }
             "bracket"
