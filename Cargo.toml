@@ -1,7 +1,7 @@
 [package]
 name = "rhai-playground"
 description = "Rhai Playground"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Alvin Wong <alvinhochun@gmail.com>"]
 categories = ["wasm"]
 readme = "README.md"
