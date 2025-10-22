@@ -28,7 +28,7 @@ jobs:
     - run: npm install
     - run: NODE_OPTIONS=--openssl-legacy-provider npm run build
     - name: Upload build artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
